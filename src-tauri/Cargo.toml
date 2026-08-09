@@ -1,0 +1,37 @@
+[package]
+name = "pixelpaw-ai"
+version = "0.1.0"
+description = "PixelPaw AI - an original intelligent desktop companion"
+authors = ["PixelPaw"]
+edition = "2021"
+rust-version = "1.77"
+
+# The library that main.rs (and, later, mobile targets) call into.
+[lib]
+name = "pixelpaw_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Global cursor + keyboard-activity polling (cross-platform; Windows uses GetCursorPos/GetAsyncKeyState).
+device_query = "2"
+# AI provider HTTP lives in Rust so API keys never reach the webview.
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+futures-util = "0.3"
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Windows-only: low-level mouse hook for global scroll-wheel detection (delta only).
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winuser", "windef", "minwindef"] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

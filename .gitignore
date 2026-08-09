@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+# Build output
+dist/
+dist-ssr/
+# Tauri / Rust
+src-tauri/target/
+src-tauri/gen/
+# Logs
+*.log
+npm-debug.log*
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+# Env / secrets (never commit API keys)
+.env
+.env.*
+!.env.example
+# Local data
+*.sqlite
+*.sqlite-*
