@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="An original pixel-art desktop companion for Windows. It follows your cursor, kneads its paws while you type, runs your Pomodoros, nudges you to drink water, and celebrates when your coding agent finishes.">
+<meta name="author" content="SRJ-ai">
+<link rel="canonical" href="https://srj-ai.github.io/pixelpaw-ai/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PixelPaw AI - a pixel cat that lives on your desktop">
+<meta property="og:description" content="An original pixel-art desktop companion for Windows. Free, open source, works offline.">
+<meta property="og:url" content="https://srj-ai.github.io/pixelpaw-ai/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#14131A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%90%BE%3C/text%3E%3C/svg%3E">
+<title>PixelPaw AI â€” a pixel cat that lives on your desktop</title>
+<style>
+  /* ---------- tokens ---------- */
+  :root {
+    --ink: #14131A;
+    --surface: #1D1B26;
+    --surface-2: #262230;
+    --line: #322C3D;
+    --haze: #9A93AE;
+    --text: #EFEAF2;
+    --paw: #F6B26B;
+    --ember: #E8823A;
+    --mint: #39B37A;
+    --pink: #FF7BA3;
+    --ground: var(--ink);
+
+    --display: 800 1em/0.95 system-ui, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    --maxw: 1080px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ink: #FBF7F2;
+      --surface: #FFFFFF;
+      --surface-2: #F4EFE9;
+      --line: #E3DAD0;
+      --haze: #6E6579;
+      --text: #221F2B;
+      --ground: var(--ink);
+    }
+  }
+  :root[data-theme="light"] {
+    --ink: #FBF7F2; --surface: #FFFFFF; --surface-2: #F4EFE9;
+    --line: #E3DAD0; --haze: #6E6579; --text: #221F2B; --ground: var(--ink);
+  }
+  :root[data-theme="dark"] {
+    --ink: #14131A; --surface: #1D1B26; --surface-2: #262230;
+    --line: #322C3D; --haze: #9A93AE; --text: #EFEAF2; --ground: var(--ink);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--text);
+    font: 400 16px/1.6 system-ui, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  .eyebrow {
+    font: 600 11px/1 var(--mono);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--haze);
+  }
+
+  /* ---------- top bar ---------- */
+  header.bar {
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .bar-in { display: flex; align-items: center; gap: 12px; padding: 12px 24px; max-width: var(--maxw); margin: 0 auto; }
+  .brand { display: flex; align-items: center; gap: 9px; font: 700 15px/1 system-ui, sans-serif; letter-spacing: -0.01em; }
+  .brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--paw); }
+  .bar-spacer { flex: 1; }
+  .bar-link { color: var(--haze); text-decoration: none; font: 600 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .bar-link:hover { color: var(--text); }
+  .bar-link:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--paw); outline-offset: 3px; border-radius: 4px; }
+
+  /* ---------- hero ---------- */
+  .hero { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; padding: 76px 0 64px; }
+  h1 {
+    font: var(--display); font-size: clamp(40px, 6.6vw, 68px);
+    letter-spacing: -0.04em; margin: 14px 0 0; text-wrap: balance;
+  }
+  h1 .accent { color: var(--paw); }
+  .lede { color: var(--haze); font-size: 17px; max-width: 46ch; margin: 18px 0 0; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 18px; border-radius: 10px; text-decoration: none;
+    font: 700 14px/1 system-ui, sans-serif; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn-primary { background: var(--paw); color: #201502; }
+  .btn-primary:hover { background: var(--ember); }
+  .btn-ghost { border-color: var(--line); color: var(--text); background: transparent; }
+  .btn-ghost:hover { border-color: var(--paw); }
+  .meta { font: 500 12px/1.5 var(--mono); color: var(--haze); margin-top: 14px; }
+
+  /* ---------- desktop window mock ---------- */
+  .mock {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+  }
+  .mock-bar { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+  .mock-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+  .mock-title { font: 600 11px/1 var(--mono); color: var(--haze); letter-spacing: 0.08em; margin-left: 6px; }
+  .stage { position: relative; height: 300px; display: grid; place-items: center; cursor: pointer; }
+  .stage svg { width: 210px; height: 210px; overflow: visible; }
+  .stage-hint { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font: 500 11px/1 var(--mono); color: var(--haze); letter-spacing: 0.06em; }
+  .bubble {
+    position: absolute; top: 16px; left: 50%; transform: translate(-50%, -6px) scale(0.94);
+    background: var(--text); color: var(--ground); padding: 5px 11px; border-radius: 10px;
+    font: 700 12px/1.2 system-ui, sans-serif; white-space: nowrap; opacity: 0;
+    transition: opacity .18s ease, transform .18s ease; pointer-events: none;
+  }
+  .bubble.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+  /* ---------- sections ---------- */
+  section { padding: 64px 0; border-top: 1px solid var(--line); }
+  h2 { font: var(--display); font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -0.03em; margin: 10px 0 0; text-wrap: balance; }
+  .sec-lede { color: var(--haze); max-width: 56ch; margin: 12px 0 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 32px; }
+  .cell { background: var(--surface); padding: 22px; }
+  .cell h3 { font: 700 15px/1.3 system-ui, sans-serif; margin: 10px 0 6px; letter-spacing: -0.01em; }
+  .cell p { color: var(--haze); font-size: 14px; margin: 0; }
+  .tag { font: 600 10px/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--paw); }
+  .tag.mint { color: var(--mint); }
+  .tag.pink { color: var(--pink); }
+
+  /* provider list */
+  .providers { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font: 600 12px/1 var(--mono); color: var(--haze); background: var(--surface); }
+  .chip.free { color: var(--mint); border-color: color-mix(in srgb, var(--mint) 45%, var(--line)); }
+
+  /* code */
+  pre {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px; overflow-x: auto; font: 500 12.5px/1.7 var(--mono); color: var(--text); margin: 22px 0 0;
+  }
+  pre .c { color: var(--haze); }
+  pre .k { color: var(--paw); }
+
+  /* privacy */
+  .privacy { display: grid; gap: 10px; margin-top: 28px; }
+  .prow { display: flex; gap: 12px; align-items: baseline; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .prow:last-child { border-bottom: 0; }
+  .pname { font: 700 14px/1.4 system-ui, sans-serif; min-width: 190px; }
+  .pdesc { color: var(--haze); font-size: 14px; }
+
+  /* footer */
+  footer { border-top: 1px solid var(--line); padding: 40px 0 56px; }
+  .foot { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; }
+  .dev { display: flex; align-items: center; gap: 12px; }
+  .dev-avatar {
+    width: 40px; height: 40px; border-radius: 10px; background: var(--surface-2);
+    border: 1px solid var(--line); display: grid; place-items: center; font-size: 19px;
+  }
+  .dev-name { font: 700 14px/1.3 system-ui, sans-serif; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--paw); }
+  .dev-name:hover { color: var(--paw); }
+  .dev > span:last-child { font: 500 13px/1.4 system-ui, sans-serif; color: var(--haze); }
+  .dev-role { font: 500 11px/1.3 var(--mono); color: var(--haze); letter-spacing: 0.08em; text-transform: uppercase; }
+  .coffee {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--line); color: var(--text);
+    text-decoration: none; font: 700 13px/1 system-ui, sans-serif;
+  }
+  .coffee:hover { border-color: var(--paw); background: color-mix(in srgb, var(--paw) 12%, var(--surface)); }
+  .fineprint { color: var(--haze); font-size: 12.5px; margin-top: 26px; max-width: 68ch; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 34px; padding: 48px 0; }
+    .stage { height: 250px; }
+    .pname { min-width: 0; }
+    .prow { flex-direction: column; gap: 2px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <span class="brand"><span class="dot"></span>PixelPaw AI</span>
+    <span class="bar-spacer"></span>
+    <a class="bar-link" href="#features">Features</a>
+    <a class="bar-link" href="#ai">AI</a>
+    <a class="bar-link" href="#privacy">Privacy</a>
+    <a class="bar-link" href="https://github.com/SRJ-ai/pixelpaw-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <span class="eyebrow">Desktop companion Â· Windows 10 / 11</span>
+      <h1>A pixel cat that lives on your desktop and <span class="accent">actually helps you work.</span></h1>
+      <p class="lede">
+        It watches your cursor, kneads its paws while you type, reminds you to drink water, runs your
+        Pomodoros â€” and celebrates when your coding agent finishes a task.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe">Download for Windows</a>
+        <a class="btn btn-ghost" href="#ai">See the AI side</a>
+      </div>
+      <p class="meta">Free Â· Open source Â· Works offline Â· No account required Â· 1.75 MB</p>
+    </div>
+
+    <div class="mock">
+      <div class="mock-bar">
+        <span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span>
+        <span class="mock-title">your desktop</span>
+      </div>
+      <div class="stage" id="stage" role="img" aria-label="A pixel-art cat that follows your cursor. Click to pet it.">
+        <div class="bubble" id="bubble">purrrr ðŸ¾</div>
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g id="cat">
+            <path d="M74 82 Q95 80 90 58 Q88 49 82 52 Q89 66 73 75 Z" fill="#F6B26B" stroke="rgba(60,40,30,.32)"/>
+            <path d="M27 40 L45 37 L32 15 Z" fill="#F6B26B" stroke="rgba(60,40,30,.32)"/>
+            <path d="M32 37 L41 35 L34 22 Z" fill="#FFC2CE"/>
+            <path d="M73 40 L55 37 L68 15 Z" fill="#F6B26B" stroke="rgba(60,40,30,.32)"/>
+            <path d="M68 37 L59 35 L66 22 Z" fill="#FFC2CE"/>
+            <rect x="24" y="30" width="52" height="58" rx="22" fill="#F6B26B" stroke="rgba(60,40,30,.32)"/>
+            <ellipse cx="50" cy="72" rx="15" ry="17" fill="#FFE7C7"/>
+            <rect x="47" y="31" width="6" height="3" rx="1.5" fill="#E58E3A"/>
+            <rect x="40.5" y="33" width="5" height="2.4" rx="1.2" fill="#E58E3A"/>
+            <rect x="54.5" y="33" width="5" height="2.4" rx="1.2" fill="#E58E3A"/>
+            <ellipse cx="39" cy="87" rx="6.5" ry="4" fill="#F6B26B" stroke="rgba(60,40,30,.32)"/>
+            <ellipse cx="61" cy="87" rx="6.5" ry="4" fill="#F6B26B" stroke="rgba(60,40,30,.32)"/>
+            <g stroke="#ececef" stroke-width=".8" opacity=".7" stroke-linecap="round">
+              <line x1="30" y1="58" x2="15" y2="55"/><line x1="30" y1="61" x2="13" y2="61"/><line x1="30" y1="64" x2="15" y2="67"/>
+              <line x1="70" y1="58" x2="85" y2="55"/><line x1="70" y1="61" x2="87" y2="61"/><line x1="70" y1="64" x2="85" y2="67"/>
+            </g>
+            <g id="eyeL" style="transform-box:fill-box;transform-origin:center">
+              <ellipse cx="38" cy="53" rx="6" ry="7" fill="#fff" stroke="rgba(60,40,30,.32)" stroke-width=".6"/>
+              <g id="pupL" style="transform-box:fill-box;transform-origin:center">
+                <circle cx="38" cy="53.5" r="4.2" fill="#39B37A"/><circle cx="38" cy="54.5" r="2.3" fill="#23262c"/>
+                <circle cx="36.3" cy="51.5" r="1.2" fill="#fff"/>
+              </g>
+            </g>
+            <g id="eyeR" style="transform-box:fill-box;transform-origin:center">
+              <ellipse cx="62" cy="53" rx="6" ry="7" fill="#fff" stroke="rgba(60,40,30,.32)" stroke-width=".6"/>
+              <g id="pupR" style="transform-box:fill-box;transform-origin:center">
+                <circle cx="62" cy="53.5" r="4.2" fill="#39B37A"/><circle cx="62" cy="54.5" r="2.3" fill="#23262c"/>
+                <circle cx="60.3" cy="51.5" r="1.2" fill="#fff"/>
+              </g>
+            </g>
+            <ellipse id="blushL" cx="31" cy="60" rx="4" ry="2.4" fill="#ff9db0" opacity="0"/>
+            <ellipse id="blushR" cx="69" cy="60" rx="4" ry="2.4" fill="#ff9db0" opacity="0"/>
+            <path d="M47 61 L53 61 L50 65 Z" fill="#E86A92"/>
+            <g id="mouth" fill="none" stroke="#5a4636" stroke-width="1.3" stroke-linecap="round">
+              <path d="M50 65 L50 68"/><path d="M44 68 Q47 71 50 68"/><path d="M50 68 Q53 71 56 68"/>
+            </g>
+            <g id="smile" fill="none" stroke="#5a4636" stroke-width="1.3" stroke-linecap="round" style="display:none">
+              <path d="M50 65 L50 67"/><path d="M43 66 Q50 74 57 66"/>
+            </g>
+          </g>
+          <g id="hearts" opacity="0"></g>
+        </svg>
+        <div class="stage-hint">move your cursor Â· click to pet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <span class="eyebrow">What it does</span>
+    <h2>A companion, not a chatbot with a cat picture.</h2>
+    <p class="sec-lede">
+      Every behaviour runs locally and offline. The AI is an optional layer on top â€” the pet is
+      fully alive without it.
+    </p>
+
+    <div class="grid">
+      <div class="cell">
+        <span class="tag">Presence</span>
+        <h3>Lives on your desktop</h3>
+        <p>Transparent, always-on-top, and click-through everywhere except the cat itself â€” so your desktop stays completely usable.</p>
+      </div>
+      <div class="cell">
+        <span class="tag">Reacts</span>
+        <h3>Knows what you're doing</h3>
+        <p>Follows your cursor, kneads its paws while you type, overheats when you type <em>too</em> fast, and startles at a fast scroll.</p>
+      </div>
+      <div class="cell">
+        <span class="tag">Physical</span>
+        <h3>Pick it up and pet it</h3>
+        <p>Drag it and it stretches like mochi, then bounces back. Stroke its head for hearts and purring. Tap it and you'll get an indignant "ow".</p>
+      </div>
+      <div class="cell">
+        <span class="tag mint">Focus</span>
+        <h3>Pomodoro that behaves</h3>
+        <p>During focus it goes quiet and still. On the break it stretches, plays, and celebrates when the cycle completes.</p>
+      </div>
+      <div class="cell">
+        <span class="tag mint">Health</span>
+        <h3>Water &amp; stretch nudges</h3>
+        <p>A gentle reminder every 15 minutes (yours to configure) to drink water and unhunch your shoulders.</p>
+      </div>
+      <div class="cell">
+        <span class="tag mint">Planning</span>
+        <h3>Reminders &amp; tasks</h3>
+        <p>Schedule reminders once, daily or on weekdays. Keep a task list the cat will politely nag you about.</p>
+      </div>
+      <div class="cell">
+        <span class="tag pink">Control</span>
+        <h3>Music from the tray</h3>
+        <p>Play, pause, skip and adjust volume for whatever's playing â€” Spotify, a browser tab, anything.</p>
+      </div>
+      <div class="cell">
+        <span class="tag pink">Play</span>
+        <h3>Games, XP and bond</h3>
+        <p>Reaction and memory games earn XP. Your bond deepens from Stranger to Special Bond through ordinary use.</p>
+      </div>
+      <div class="cell">
+        <span class="tag pink">Make it yours</span>
+        <h3>Six characters, fully recolourable</h3>
+        <p>Classic, robot, caped hero, masked acrobat, armoured tech, and a samurai cat with a dramatic entrance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ai">
+  <div class="wrap">
+    <span class="eyebrow">Optional AI layer</span>
+    <h2>Talk to it. Or let it watch your agent work.</h2>
+    <p class="sec-lede">
+      Bring your own provider. Every API call happens in the native layer, so your key never touches
+      the web view â€” and the window keeps a strict content-security policy.
+    </p>
+
+    <div class="providers">
+      <span class="chip free">Claude Code CLI Â· no key needed</span>
+      <span class="chip free">Ollama Â· fully offline</span>
+      <span class="chip">Anthropic</span>
+      <span class="chip">OpenAI</span>
+      <span class="chip">Gemini</span>
+      <span class="chip">Any OpenAI-compatible endpoint</span>
+    </div>
+
+    <div class="grid">
+      <div class="cell">
+        <span class="tag">Agent aware</span>
+        <h3>It reacts to your coding agent</h3>
+        <p>Point Claude Code, Codex, Cursor or a shell script at a local endpoint. The cat looks curious while the agent works and celebrates when it lands.</p>
+      </div>
+      <div class="cell">
+        <span class="tag">Memory</span>
+        <h3>Remembers, visibly</h3>
+        <p>Every remembered fact is listed, editable and deletable. Nothing is stored quietly behind your back.</p>
+      </div>
+      <div class="cell">
+        <span class="tag">Voice of its own</span>
+        <h3>Personality &amp; language</h3>
+        <p>Eight personalities. Replies in English, Telugu, Hindi â€” or a natural Telugu-English mix.</p>
+      </div>
+    </div>
+
+    <pre><span class="c"># tell the pet what your agent is doing</span>
+curl -X POST http://127.0.0.1:8787/agent/status \
+  -H <span class="k">"X-PixelPaw-Token: &lt;your-token&gt;"</span> \
+  -d <span class="k">'{"agent":"claude-code","status":"working"}'</span></pre>
+    <p class="meta">Loopback only. Token-authenticated. It reacts â€” it never executes anything.</p>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <span class="eyebrow">Privacy</span>
+    <h2>It watches your cursor, not your life.</h2>
+    <div class="privacy">
+      <div class="prow">
+        <span class="pname">Keyboard</span>
+        <span class="pdesc">Counts keypresses to time the kneading animation. Which keys you press is never read, stored or sent.</span>
+      </div>
+      <div class="prow">
+        <span class="pname">Mouse &amp; scroll</span>
+        <span class="pdesc">Cursor position and wheel delta drive the reactions. Nothing is recorded.</span>
+      </div>
+      <div class="prow">
+        <span class="pname">Network</span>
+        <span class="pdesc">No telemetry, no analytics, no accounts. The only outbound traffic is the AI provider you choose to configure.</span>
+      </div>
+      <div class="prow">
+        <span class="pname">Your data</span>
+        <span class="pdesc">Settings, memories and progress live on your machine. Every monitor has its own switch in the privacy dashboard.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <span class="eyebrow">Get it</span>
+    <h2>Adopt one.</h2>
+    <p class="sec-lede">Windows 10 or 11. Around 25 MB of memory while it's pottering about on your desktop.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe">Download for Windows</a>
+      <a class="btn btn-ghost" href="https://github.com/SRJ-ai/pixelpaw-ai" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+    </div>
+    <p class="meta">PixelPaw AI 0.1.0 Â· NSIS installer Â· 1.75 MB Â· Windows 10 / 11</p>
+    <p class="meta">The build is unsigned, so SmartScreen will flag the publisher â€” choose â€œMore info â†’ Run anywayâ€ if you're happy to proceed.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div class="dev">
+        <span class="dev-avatar">ðŸ¾</span>
+        <span>
+          Built by <a class="dev-name" href="https://github.com/SRJ-ai" target="_blank" rel="noopener noreferrer">SRJ-ai</a><br>
+          <span class="dev-role">Developer Â· Designer Â· Cat wrangler</span>
+        </span>
+      </div>
+      <a class="coffee" href="https://buymeacoffee.com/mywaysrj" target="_blank" rel="noopener noreferrer">
+        â˜• Buy me a coffee
+      </a>
+    </div>
+    <p class="fineprint">
+      PixelPaw AI is an original, independent project. All artwork, animation, code and characters are
+      original creations and are not affiliated with, endorsed by, or derived from any existing
+      desktop-pet product, film, studio or franchise.
+    </p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var cat = document.getElementById('cat');
+  var pupL = document.getElementById('pupL'), pupR = document.getElementById('pupR');
+  var eyeL = document.getElementById('eyeL'), eyeR = document.getElementById('eyeR');
+  var blushL = document.getElementById('blushL'), blushR = document.getElementById('blushR');
+  var mouth = document.getElementById('mouth'), smile = document.getElementById('smile');
+  var hearts = document.getElementById('hearts'), bubble = document.getElementById('bubble');
+  if (!stage || !cat) return;
+
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var tx = 0, ty = 0, cx = 0, cy = 0, petting = 0, t0 = performance.now();
+
+  // Gaze: pupils and a slight body lean toward the visitor's cursor.
+  addEventListener('mousemove', function (e) {
+    var r = stage.getBoundingClientRect();
+    var ex = r.left + r.width / 2, ey = r.top + r.height / 2;
+    tx = Math.max(-1, Math.min(1, (e.clientX - ex) / 420));
+    ty = Math.max(-1, Math.min(1, (e.clientY - ey) / 420));
+  }, { passive: true });
+
+  // Petting: a burst of hearts and a happy squint.
+  stage.addEventListener('click', function () {
+    petting = performance.now();
+    hearts.innerHTML = '';
+    for (var i = 0; i < 3; i++) {
+      var g = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      g.setAttribute('d', 'M0 1.2 C -1 -.4 -3.4 .2 -3.4 2 C -3.4 3.8 0 5.8 0 5.8 C 0 5.8 3.4 3.8 3.4 2 C 3.4 .2 1 -.4 0 1.2 Z');
+      g.setAttribute('fill', ['#FF5C8A', '#FF7BA3', '#FF9DB8'][i]);
+      g.setAttribute('transform', 'translate(' + (56 + i * 8) + ' ' + (30 - i * 6) + ')');
+      g.style.animation = 'none';
+      hearts.appendChild(g);
+    }
+    hearts.style.opacity = '1';
+    bubble.classList.add('on');
+    setTimeout(function () { hearts.style.opacity = '0'; bubble.classList.remove('on'); }, 1500);
+  });
+
+  var blinkAt = 1400 + Math.random() * 2600;
+
+  function frame(now) {
+    var t = now - t0;
+    cx += (tx - cx) * 0.12;
+    cy += (ty - cy) * 0.12;
+
+    var isPet = now - petting < 1500;
+    var breathe = reduce ? 0 : Math.sin(t / 900) * 0.018;
+
+    cat.style.transform =
+      'translate(' + (cx * 2.4) + 'px,' + (breathe * -6) + 'px) rotate(' + (cx * 2.6) + 'deg) scale(' + (1 - breathe * 0.5) + ',' + (1 + breathe) + ')';
+    cat.style.transformBox = 'fill-box';
+    cat.style.transformOrigin = '50% 100%';
+
+    var px = cx * 2.4, py = cy * 2.4;
+    pupL.style.transform = pupR.style.transform = 'translate(' + px + 'px,' + py + 'px)';
+
+    // Blink on a wandering schedule; hold a squint while being petted.
+    var open = 1;
+    if (isPet) open = 0.18;
+    else if (!reduce && t > blinkAt) {
+      var p = (t - blinkAt) / 150;
+      if (p >= 1) { blinkAt = t + 1400 + Math.random() * 3200; }
+      else open = Math.abs(Math.cos(p * Math.PI));
+    }
+    eyeL.style.transform = eyeR.style.transform = 'scale(1,' + Math.max(0.08, open) + ')';
+
+    blushL.style.opacity = blushR.style.opacity = isPet ? '1' : '0';
+    mouth.style.display = isPet ? 'none' : 'inline';
+    smile.style.display = isPet ? 'inline' : 'none';
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
