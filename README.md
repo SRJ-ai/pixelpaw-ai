@@ -4,6 +4,9 @@ An original, intelligent **desktop companion** — a tiny pixel-art pet that gen
 desktop, reacts to your mouse and activity, and (in later phases) grows an optional AI brain,
 productivity tools, and personality.
 
+**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe)** · 1.75 MB · Windows 10/11
+The build is unsigned, so SmartScreen will flag the publisher — choose *More info → Run anyway* if you're happy to proceed.
+
 > **Originality:** PixelPaw AI is an original product. It is *not* affiliated with, and copies no
 > code, art, sound, branding, or assets from, any existing desktop-pet product. Only the general
 > product *category* (desktop pet, mouse-following eyes, petting, reminders, etc.) is used as
