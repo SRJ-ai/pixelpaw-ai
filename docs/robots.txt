@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://srj-ai.github.io/pixelpaw-ai/sitemap.xml
