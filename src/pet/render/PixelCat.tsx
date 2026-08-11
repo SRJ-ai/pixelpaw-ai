@@ -27,10 +27,16 @@ const originFeet = { transformBox: "fill-box", transformOrigin: "50% 100%" } as 
 const originCenter = { transformBox: "fill-box", transformOrigin: "center" } as const;
 const originBase = { transformBox: "fill-box", transformOrigin: "0% 100%" } as const;
 
+/** Anything outside Basic Latin needs the script-capable font + taller band. */
+const isLatin = (s: string) => /^[\x20-\x7e]*$/.test(s);
+
 export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
   { appearance: a, accessories: acc = {}, decor = false },
   ref
 ) {
+  const badge = acc.headbandText ?? "OG";
+  const teluguBadge = !isLatin(badge);
+
   return (
     <svg
       ref={ref}
@@ -188,22 +194,31 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           <path d={STAR} transform="translate(50 74) scale(1.7)" fill={acc.emblemColor ?? "#ffd23f"} />
         )}
 
-        {/* Samurai headband with an original "OG" badge */}
+        {/* Samurai headband with its badge. Telugu script carries taller vowel
+            signs than Latin, so it gets a deeper band and a script-capable font
+            rather than being squeezed into the Latin metrics. */}
         {acc.headband && (
           <g>
-            <path d="M27 38 Q50 33 73 38 L73 43 Q50 39 27 43 Z" fill={acc.headband} />
+            <path
+              d={teluguBadge ? "M27 35.4 Q50 29.9 73 35.4 L73 44.2 Q50 39.6 27 44.2 Z" : "M27 38 Q50 33 73 38 L73 43 Q50 39 27 43 Z"}
+              fill={acc.headband}
+            />
             <path d="M27 40 l-9 -3 l3 6 l-8 2 l7 3 l-2 6 l8 -5 z" fill={acc.headband} />
             <text
               x="50"
-              y="41.9"
-              fontSize="4.6"
+              y={teluguBadge ? 42.1 : 41.9}
+              fontSize={teluguBadge ? 6.2 : 4.6}
               fontWeight="900"
               textAnchor="middle"
               fill="#fff5e6"
-              fontFamily="system-ui, sans-serif"
-              letterSpacing="0.4"
+              fontFamily={
+                teluguBadge
+                  ? '"Nirmala UI", Gautami, "Noto Sans Telugu", system-ui, sans-serif'
+                  : "system-ui, sans-serif"
+              }
+              letterSpacing={teluguBadge ? 0 : 0.4}
             >
-              OG
+              {badge}
             </text>
           </g>
         )}

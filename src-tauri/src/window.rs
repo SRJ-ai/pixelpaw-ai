@@ -19,10 +19,52 @@ fn pet_scale() -> f32 {
     PET_SCALE_MILLI.load(Ordering::Relaxed) as f32 / 1000.0
 }
 
+/// An extra interactive rectangle the webview asks to be clickable, in
+/// thousandths of the window (left, top, right, bottom). The media pill sits
+/// well above the cat's silhouette, so without this its buttons would fall
+/// through to the desktop. All zeroes means "nothing extra".
+static UI_RECT_MILLI: [AtomicU32; 4] = [
+    AtomicU32::new(0),
+    AtomicU32::new(0),
+    AtomicU32::new(0),
+    AtomicU32::new(0),
+];
+
+/// A rectangle in fractions of the window, as the UI reports it.
+#[derive(serde::Deserialize)]
+pub struct UiRect {
+    pub l: f32,
+    pub t: f32,
+    pub r: f32,
+    pub b: f32,
+}
+
+pub fn set_ui_rect(rect: &UiRect) {
+    let to_milli = |v: f32| (v.clamp(0.0, 1.0) * 1000.0) as u32;
+    UI_RECT_MILLI[0].store(to_milli(rect.l), Ordering::Relaxed);
+    UI_RECT_MILLI[1].store(to_milli(rect.t), Ordering::Relaxed);
+    UI_RECT_MILLI[2].store(to_milli(rect.r), Ordering::Relaxed);
+    UI_RECT_MILLI[3].store(to_milli(rect.b), Ordering::Relaxed);
+}
+
+fn over_ui_rect(rel_x: i32, rel_y: i32, w: i32, h: i32) -> bool {
+    let f = |i: usize| UI_RECT_MILLI[i].load(Ordering::Relaxed) as f32 / 1000.0;
+    let (l, t, r, b) = (f(0), f(1), f(2), f(3));
+    if r <= l || b <= t {
+        return false; // nothing published
+    }
+    let x = rel_x as f32 / w as f32;
+    let y = rel_y as f32 / h as f32;
+    x >= l && x <= r && y >= t && y <= b
+}
+
 /// Approximate the cat's silhouette as a box centred on the character, sized
 /// from the current visual scale (the art is anchored at the bottom of the
 /// stage, so the box grows upward from the feet).
 pub fn is_over_pet(rel_x: i32, rel_y: i32, w: i32, h: i32) -> bool {
+    if over_ui_rect(rel_x, rel_y, w, h) {
+        return true;
+    }
     let s = pet_scale();
     let wf = w as f32;
     let hf = h as f32;

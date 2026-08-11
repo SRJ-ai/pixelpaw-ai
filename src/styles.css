@@ -2,6 +2,92 @@
    the page must be fully see-through except for the cat itself. */
 :root {
   color-scheme: light dark;
+
+  /* ------------------------------------------------------------- tokens
+     One accent for the whole app, taken from what the product already
+     wore: the default cat's warm orange. Everything tinted below is
+     derived from it rather than picked per-component, which is what kept
+     stray blues and greys creeping into the panels. */
+  --accent: #f0932b;
+  --accent-hover: #ffa844;
+  --accent-ink: #23180a; /* text that sits *on* the accent */
+  --accent-wash: rgba(240, 147, 43, 0.12);
+  --accent-wash-strong: rgba(240, 147, 43, 0.22);
+  --danger: #d1493f;
+  --success: #2f9e6b;
+
+  --surface: #f4f5f7;
+  --surface-raised: rgba(255, 255, 255, 0.72);
+  --surface-sunken: rgba(15, 18, 26, 0.04);
+  --text: #1f2430;
+  --text-muted: #5c6474;
+  --text-faint: #78808f;
+  --line: rgba(24, 28, 38, 0.14);
+  --line-strong: rgba(24, 28, 38, 0.26);
+
+  /* Real offset plus blur; a zero-offset halo is decoration, not depth. */
+  --shadow-1: 0 1px 2px rgba(16, 20, 28, 0.06), 0 2px 8px rgba(16, 20, 28, 0.05);
+  --shadow-2: 0 2px 4px rgba(16, 20, 28, 0.08), 0 10px 26px rgba(16, 20, 28, 0.1);
+
+  /* Fixed rem scale at a ~1.13 ratio. Product UI has many type roles, so
+     the steps stay close together; exaggerated contrast reads as noise. */
+  --text-2xs: 0.6875rem; /* 11px - section eyebrows, meta */
+  --text-xs: 0.75rem; /* 12px - secondary rows, notes */
+  --text-sm: 0.8125rem; /* 13px - body default */
+  --text-md: 0.9375rem; /* 15px - emphasis */
+  --text-lg: 1.0625rem; /* 17px - window title */
+
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 24px;
+
+  /* One radius system: panels soft, controls softer, anything interactive
+     and small is a pill. */
+  --radius-panel: 12px;
+  --radius-control: 8px;
+  --radius-pill: 999px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 180ms;
+
+  /* Form controls, list markers and the caret all inherit the accent so the
+     parts we did not draw still belong to the design. */
+  accent-color: var(--accent);
+  caret-color: var(--accent);
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #15181f;
+    --surface-raised: rgba(255, 255, 255, 0.045);
+    --surface-sunken: rgba(0, 0, 0, 0.24);
+    --text: #e7e9ee;
+    --text-muted: #a3abbb;
+    --text-faint: #8b93a3;
+    --line: rgba(255, 255, 255, 0.11);
+    --line-strong: rgba(255, 255, 255, 0.22);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.26);
+    --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.36), 0 12px 30px rgba(0, 0, 0, 0.42);
+    --success: #3fbe86;
+    --danger: #e8635a;
+  }
+}
+
+::selection {
+  background: var(--accent-wash-strong);
+  color: var(--text);
+}
+
+/* One focus ring for every control, drawn outside the element so it never
+   shifts layout. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
 }
 
 html,
@@ -12,6 +98,22 @@ body,
   height: 100%;
   background: transparent;
   overflow: hidden;
+}
+
+/* The pet stage is a fixed, clipped viewport, but Settings and Games are
+   ordinary documents that are taller than their window — they have to scroll.
+   Undoing the clamp on all three boxes is what makes that possible: leaving
+   `#root` at `height: 100%; overflow: hidden` clips the content no matter what
+   `body` says. */
+html.scroll-window,
+html.scroll-window body,
+html.scroll-window #root {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+html.scroll-window {
+  overflow-y: auto;
 }
 
 body {
@@ -31,28 +133,118 @@ body {
   opacity: var(--pet-opacity, 1);
 }
 
+/* ---------------------------------------------------------------- media pill
+   A capsule that slides out above the pet's head with transport controls.
+   Anchored off --pet-scale like the speech bubble, so it tracks the drawn
+   size; when it is out, the bubble is pushed above it (see .pp-bubble). */
+.pp-pill {
+  position: absolute;
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 16px), calc(100% - 30px));
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 7px;
+  border-radius: var(--radius-pill);
+  /* Layered: a tinted scrim, a top highlight, and a 1px inner edge, so the
+     capsule reads as a physical object on any wallpaper instead of a flat
+     rectangle. Blur is the effect here, not decoration. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03)),
+    rgba(16, 17, 22, 0.82);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.34),
+    0 12px 28px rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  transform: translate(-50%, 8px) scale(0.86);
+  transform-origin: center bottom;
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out), transform 240ms var(--ease-out);
+}
+.pp-pill.show {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+  pointer-events: auto;
+}
+.pp-pill-btn {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #eceef4;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.09s ease;
+}
+.pp-pill-btn svg { width: 13px; height: 13px; fill: currentColor; stroke: currentColor; }
+.pp-pill-btn:hover { background: var(--accent); color: var(--accent-ink); }
+.pp-pill-btn:active { transform: scale(0.88); }
+
+/* Decorative equaliser, animated only while the pill is out. */
+.pp-pill-eq { display: flex; align-items: flex-end; gap: 2px; height: 12px; margin-left: 4px; }
+.pp-pill-eq i {
+  width: 2px;
+  height: 11px;
+  border-radius: 1px;
+  background: var(--accent);
+  transform-origin: bottom;
+  transform: scaleY(0.3);
+}
+.pp-pill.show .pp-pill-eq i { animation: pp-eq 900ms ease-in-out infinite; }
+.pp-pill-eq i:nth-child(2) { animation-delay: 150ms; }
+.pp-pill-eq i:nth-child(3) { animation-delay: 300ms; }
+@keyframes pp-eq {
+  0%, 100% { transform: scaleY(0.28); }
+  50% { transform: scaleY(1); }
+}
+body.reduced-motion .pp-pill.show .pp-pill-eq i { animation: none; transform: scaleY(0.62); }
+@media (prefers-reduced-transparency: reduce) {
+  .pp-pill {
+    background: rgb(16, 17, 22);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* Speech bubble above the pet. */
 .pp-bubble {
   position: absolute;
-  top: 2%;
+  /* Sit just above the cat's head rather than at the top of the stage. The art
+     is anchored to the bottom and takes 84% of the stage height at scale 1, so
+     the head line moves with --pet-scale; a fixed `top` stranded the bubble
+     near the ceiling at small sizes. The min() keeps it on-screen when the pet
+     is scaled up. */
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 16px), calc(100% - 30px));
   left: 50%;
-  transform: translate(-50%, -6px) scale(0.92);
+  transform: translate(-50%, 6px) scale(0.92);
   max-width: 90%;
   padding: 6px 11px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.97);
-  color: #2a2a30;
-  font: 600 13px/1.2 system-ui, "Segoe UI", sans-serif;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  background: rgba(255, 255, 255, 0.98);
+  color: #23262e;
+  border: 1px solid rgba(35, 38, 46, 0.1);
+  font: 600 var(--text-sm)/1.35 system-ui, "Segoe UI", sans-serif;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16), 0 10px 24px rgba(0, 0, 0, 0.26);
   opacity: 0;
   pointer-events: none;
   white-space: nowrap;
   text-align: center;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition: opacity 0.18s ease, transform 0.18s ease, bottom 0.24s ease;
 }
 .pp-bubble.show {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
+}
+/* When the media pill is out it owns the space above the head, so the bubble
+   steps up over it instead of the two colliding. */
+.pet-stage.pill-open .pp-bubble {
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 50px), calc(100% - 30px));
 }
 .pp-bubble::after {
   content: "";
@@ -277,12 +469,21 @@ body.reduced-motion .pp-steam {
 .pp-sam-caption {
   position: absolute;
   bottom: 4%;
-  padding: 4px 12px;
+  padding: 5px 13px 6px;
   border-radius: 10px;
-  background: rgba(20, 18, 24, 0.82);
+  background: rgba(20, 18, 24, 0.86);
+  /* Telugu needs a font that actually has the script and a little more leading
+     than Latin, or the vowel signs above and below the line get clipped. */
+  font-family: "Nirmala UI", Gautami, "Noto Sans Telugu", system-ui, "Segoe UI", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  /* Mass-cinema title-card gold. */
+  background-image: linear-gradient(180deg, rgba(20, 18, 24, 0.86), rgba(38, 26, 14, 0.9));
   color: #ffd23f;
-  font: 700 13px/1.2 system-ui, "Segoe UI", sans-serif;
-  letter-spacing: 0.04em;
+  border: 1px solid rgba(255, 210, 63, 0.45);
+  text-shadow: 0 1px 0 #6b3b06, 0 0 12px rgba(255, 190, 60, 0.55);
+  letter-spacing: 0.02em;
   white-space: nowrap;
   animation: pp-sam-cap 2.6s ease-out both;
 }
@@ -299,22 +500,16 @@ body.reduced-motion .pp-bh-ring { animation: none; }
 
 /* ============================ Settings window ============================ */
 body.settings-window {
-  background: #f4f5f7;
-  color: #1f2430;
+  background: var(--surface);
+  color: var(--text);
   overflow: auto;
-}
-@media (prefers-color-scheme: dark) {
-  body.settings-window {
-    background: #1b1e26;
-    color: #e7e9ee;
-  }
 }
 
 .settings-root {
   max-width: 520px;
   margin: 0 auto;
-  padding: 14px 16px 28px;
-  font: 13px/1.45 system-ui, "Segoe UI", sans-serif;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  font: var(--text-sm)/1.45 system-ui, "Segoe UI", sans-serif;
 }
 
 .set-header {
@@ -331,25 +526,65 @@ body.settings-window {
   place-items: center;
 }
 .set-preview svg { width: 100%; height: 100%; overflow: visible; }
-.set-header h1 { font-size: 17px; margin: 0; }
-.set-header p { margin: 2px 0 0; opacity: 0.62; font-size: 12px; }
+.set-header h1 { font-size: var(--text-lg); margin: 0; letter-spacing: -0.015em; }
+.set-header p { margin: 2px 0 0; color: var(--text-muted); font-size: var(--text-xs); }
+
+/* Group rail. Sticky against the document scrollport, and it earns a backdrop
+   so panel content passing underneath never muddies the labels. */
+.set-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: var(--space-1);
+  margin: 0 calc(var(--space-5) * -1) var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.set-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--space-2) var(--space-1);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.set-tab:hover { color: var(--text); background: var(--accent-wash); }
+/* The selected group is stated by weight and colour, plus a rule that ties it
+   to the panels below rather than floating as a separate chip. */
+.set-tab.on {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--accent-wash-strong);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
 
 .set-section {
-  border: 1px solid rgba(128, 128, 128, 0.22);
-  border-radius: 10px;
-  padding: 8px 12px 12px;
-  margin: 10px 0;
-  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  margin: var(--space-3) 0;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-1);
 }
-@media (prefers-color-scheme: dark) {
-  .set-section { background: rgba(255, 255, 255, 0.03); }
-}
+/* More space above a group label than below it, so the label binds to the
+   rows it introduces rather than floating between two groups. */
 .set-section h2 {
-  font-size: 11px;
+  font-size: var(--text-2xs);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  opacity: 0.55;
-  margin: 2px 0 8px;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  margin: var(--space-1) 0 var(--space-3);
 }
 .set-body { display: flex; flex-direction: column; gap: 8px; }
 
@@ -363,49 +598,113 @@ body.settings-window {
 .set-row.sub { padding-left: 14px; opacity: 0.9; }
 .set-row.sub > span:first-child { font-size: 12px; opacity: 0.75; }
 
-.set-input {
-  flex: 0 0 200px;
-  padding: 5px 8px;
-  border-radius: 7px;
-  border: 1px solid rgba(128, 128, 128, 0.35);
-  background: rgba(255, 255, 255, 0.85);
+/* Quick-pick chips (Pomodoro rhythms, break/water intervals). */
+.set-presets { align-items: flex-start; }
+.set-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+}
+.set-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+  padding: 5px var(--space-4);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunken);
   color: inherit;
   font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out), transform 90ms var(--ease-out);
+}
+.set-chip em { font-style: normal; font-size: 10px; color: var(--text-faint); }
+.set-chip:hover { border-color: var(--accent); background: var(--accent-wash); }
+.set-chip:active { transform: scale(0.96); }
+/* Selected reads as filled, not merely tinted: at this size a wash is easy to
+   miss when several chips sit side by side. */
+.set-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.set-chip.on em { color: rgba(35, 24, 10, 0.66); }
+
+.set-input {
+  flex: 0 0 200px;
+  padding: 5px var(--space-3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunken);
+  color: inherit;
+  font: inherit;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.set-input:hover { border-color: var(--accent); }
+.set-input::placeholder { color: var(--text-faint); }
+
+/* The dropdown list of a native <select> is drawn by the OS from the element's
+   own colours, and a translucent background resolves to washed-out grey there —
+   the options came out barely legible. Opaque, explicit colours on both the
+   control and its options are what the popup actually needs. */
+select.set-input,
+select.set-input option {
+  background-color: #ffffff;
+  color: #1f2430;
 }
 @media (prefers-color-scheme: dark) {
-  .set-input { background: rgba(0, 0, 0, 0.25); }
+  select.set-input,
+  select.set-input option {
+    background-color: #262a33;
+    color: #e7e9ee;
+  }
 }
+select.set-input { cursor: pointer; }
 
-.set-toggle input { width: 18px; height: 18px; accent-color: #f0932b; }
+.set-toggle input { width: 18px; height: 18px; cursor: pointer; }
 
-.set-slider-ctl { display: flex; align-items: center; gap: 8px; flex: 0 0 210px; }
-.set-slider-ctl input { flex: 1 1 auto; accent-color: #f0932b; }
-.set-slider-ctl em { font-style: normal; opacity: 0.65; min-width: 38px; text-align: right; }
+.set-slider-ctl { display: flex; align-items: center; gap: var(--space-3); flex: 0 0 210px; }
+.set-slider-ctl input { flex: 1 1 auto; cursor: pointer; }
+/* Tabular figures so the readout stops jittering as the value changes. */
+.set-slider-ctl em {
+  font-style: normal;
+  color: var(--text-muted);
+  min-width: 52px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 
 .set-color-ctl { display: flex; align-items: center; gap: 8px; }
 .set-color-ctl input[type="color"] {
   width: 30px; height: 24px; padding: 0; border: none; background: none; cursor: pointer;
 }
-.set-color-ctl code { opacity: 0.6; font-size: 11px; }
+.set-color-ctl code { color: var(--text-muted); font-size: var(--text-2xs); }
 
 .set-btn {
   align-self: flex-start;
-  margin-top: 4px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.35);
-  background: rgba(255, 255, 255, 0.7);
+  margin-top: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunken);
   color: inherit;
   cursor: pointer;
   font: inherit;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out), transform 90ms var(--ease-out);
 }
-.set-btn:hover { border-color: #f0932b; }
-.set-btn.danger:hover { border-color: #e05b5b; color: #e05b5b; }
-@media (prefers-color-scheme: dark) {
-  .set-btn { background: rgba(255, 255, 255, 0.06); }
-}
+.set-btn:hover { border-color: var(--accent); background: var(--accent-wash); }
+/* A press should feel like a press. */
+.set-btn:active { transform: translateY(1px); }
+.set-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: transparent; }
 
-.set-note { margin: 0 0 8px; opacity: 0.72; font-size: 12px; }
+.set-note { margin: 0 0 var(--space-3); color: var(--text-muted); font-size: var(--text-xs); max-width: 62ch; }
 
 .set-privacy {
   display: grid;
@@ -415,12 +714,12 @@ body.settings-window {
   padding: 4px 0;
 }
 .set-dot { width: 9px; height: 9px; border-radius: 50%; }
-.set-dot.on { background: #43b581; box-shadow: 0 0 0 3px rgba(67, 181, 129, 0.18); }
-.set-dot.off { background: #9aa0ac; }
+.set-dot.on { background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 20%, transparent); }
+.set-dot.off { background: var(--text-faint); }
 .set-privacy-label { font-weight: 600; }
-.set-privacy-state { font-size: 11px; opacity: 0.7; }
-.set-privacy-state.on { color: #43b581; opacity: 1; }
-.set-privacy-desc { grid-column: 2 / 4; font-size: 11px; opacity: 0.6; }
+.set-privacy-state { font-size: var(--text-2xs); color: var(--text-muted); }
+.set-privacy-state.on { color: var(--success); }
+.set-privacy-desc { grid-column: 2 / 4; font-size: var(--text-2xs); color: var(--text-muted); }
 
 /* Reminder / task rows */
 .set-item {
@@ -428,7 +727,7 @@ body.settings-window {
   align-items: center;
   gap: 6px;
 }
-.set-item input[type="checkbox"] { width: 16px; height: 16px; accent-color: #f0932b; flex: 0 0 auto; }
+.set-item input[type="checkbox"] { width: 16px; height: 16px; flex: 0 0 auto; cursor: pointer; }
 .set-input.grow { flex: 1 1 auto; min-width: 0; }
 .set-input.done { opacity: 0.5; text-decoration: line-through; }
 .set-input.time { flex: 0 0 92px; }
@@ -437,30 +736,35 @@ body.settings-window {
   flex: 0 0 auto;
   width: 24px;
   height: 24px;
-  border-radius: 6px;
-  border: 1px solid rgba(128, 128, 128, 0.3);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
   background: transparent;
-  color: inherit;
+  color: var(--text-muted);
   cursor: pointer;
-  font-size: 15px;
+  font-size: var(--text-md);
   line-height: 1;
+  transition: border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
 }
-.set-x:hover { border-color: #e05b5b; color: #e05b5b; }
+.set-x:hover { border-color: var(--danger); color: var(--danger); }
 
 /* Media transport */
-.set-media { display: flex; gap: 6px; flex-wrap: wrap; }
+.set-media { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .set-media-btn {
   flex: 1 1 auto;
   min-width: 44px;
-  padding: 8px 6px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(128, 128, 128, 0.3);
-  background: rgba(255, 255, 255, 0.6);
-  color: inherit;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--line);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
   cursor: pointer;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out), transform 90ms var(--ease-out);
 }
-.set-media-btn:hover { border-color: #f0932b; background: rgba(240, 147, 43, 0.12); }
+.set-media-btn:active { transform: translateY(1px); }
+.set-media-btn:hover { border-color: var(--accent); background: var(--accent-wash); color: var(--accent); }
 .set-media-btn:active { transform: translateY(1px); }
 @media (prefers-color-scheme: dark) {
   .set-media-btn { background: rgba(255, 255, 255, 0.05); }
@@ -490,155 +794,316 @@ body.settings-window {
 
 /* ============================== Chat window ============================== */
 body.chat-window {
-  background: #f4f5f7;
-  color: #1f2430;
+  background: var(--surface);
+  color: var(--text);
   overflow: hidden;
-}
-@media (prefers-color-scheme: dark) {
-  body.chat-window { background: #1b1e26; color: #e7e9ee; }
 }
 
 .chat-root {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  font: 13px/1.5 system-ui, "Segoe UI", sans-serif;
+  height: 100dvh;
+  font: var(--text-sm)/1.5 system-ui, "Segoe UI", sans-serif;
 }
 .chat-header {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 9px 12px;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.22);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-raised);
 }
 .chat-avatar { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; }
 .chat-avatar svg { width: 100%; height: 100%; overflow: visible; }
 .chat-header > span:nth-child(2) { display: flex; flex-direction: column; line-height: 1.25; flex: 1 1 auto; }
-.chat-provider { font-style: normal; font-size: 11px; opacity: 0.6; }
+.chat-provider { font-style: normal; font-size: var(--text-2xs); color: var(--text-muted); }
+/* Same button vocabulary as Settings, so the two windows read as one product. */
 .chat-clear {
-  padding: 4px 10px; border-radius: 7px; cursor: pointer; font: inherit; color: inherit;
-  border: 1px solid rgba(128, 128, 128, 0.35); background: transparent;
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out),
+    transform 90ms var(--ease-out);
 }
-.chat-clear:hover { border-color: #f0932b; }
+.chat-clear:hover { border-color: var(--accent); background: var(--accent-wash); }
+.chat-clear:active { transform: translateY(1px); }
 
 .chat-notice {
-  margin: 8px 12px 0; padding: 8px 10px; border-radius: 8px; font-size: 12px;
-  background: rgba(240, 147, 43, 0.14); border: 1px solid rgba(240, 147, 43, 0.4);
+  margin: var(--space-3) var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  font-size: var(--text-xs);
+  background: var(--accent-wash);
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
 }
 
-.chat-log { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-.chat-empty { opacity: 0.5; text-align: center; margin-top: 24px; }
+.chat-log {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* An empty chat teaches what it is for instead of only greeting. */
+.chat-empty {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+.chat-empty-title { margin: 0; font-size: var(--text-md); font-weight: 600; }
+.chat-empty-hint { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
+.chat-suggest { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
+
 .chat-turn {
-  max-width: 84%; padding: 7px 11px; border-radius: 13px; white-space: pre-wrap; word-wrap: break-word;
+  max-width: 84%;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
-.chat-turn.user { align-self: flex-end; background: #f0932b; color: #23180a; border-bottom-right-radius: 4px; }
+/* Each new turn rises in once. Motion here reports that something arrived. */
+@media (prefers-reduced-motion: no-preference) {
+  body:not(.reduced-motion) .chat-turn { animation: chat-in 160ms var(--ease-out) both; }
+}
+@keyframes chat-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.chat-turn.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-bottom-right-radius: 4px;
+}
 .chat-turn.assistant {
-  align-self: flex-start; background: rgba(128, 128, 128, 0.16); border-bottom-left-radius: 4px;
+  align-self: flex-start;
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 4px;
 }
-.chat-turn.error { background: rgba(224, 91, 91, 0.18); border: 1px solid rgba(224, 91, 91, 0.5); }
-.chat-dots { opacity: 0.55; letter-spacing: 2px; }
+.chat-turn.error {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 48%, transparent);
+}
 
-.chat-input { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid rgba(128, 128, 128, 0.22); }
+/* Typing indicator: three dots that actually breathe, so a slow provider still
+   reads as working rather than stalled. */
+.chat-typing { display: inline-flex; align-items: center; gap: 4px; height: 1em; }
+.chat-typing i { width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+@media (prefers-reduced-motion: no-preference) {
+  .chat-typing i { animation: chat-typing 1s ease-in-out infinite; }
+  .chat-typing i:nth-child(2) { animation-delay: 160ms; }
+  .chat-typing i:nth-child(3) { animation-delay: 320ms; }
+}
+@keyframes chat-typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+.chat-input {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--line);
+  background: var(--surface-raised);
+}
 .chat-input textarea {
-  flex: 1 1 auto; resize: none; padding: 7px 10px; border-radius: 9px; font: inherit; color: inherit;
-  border: 1px solid rgba(128, 128, 128, 0.35); background: rgba(255, 255, 255, 0.85);
+  flex: 1 1 auto;
+  resize: none;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+  font: inherit;
+  color: inherit;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunken);
+  transition: border-color var(--dur) var(--ease-out);
 }
-@media (prefers-color-scheme: dark) {
-  .chat-input textarea { background: rgba(0, 0, 0, 0.25); }
-}
+.chat-input textarea:hover { border-color: var(--accent); }
+.chat-input textarea::placeholder { color: var(--text-faint); }
 .chat-send {
-  flex: 0 0 auto; padding: 0 16px; border-radius: 9px; border: none; cursor: pointer;
-  background: #f0932b; color: #23180a; font: 600 13px system-ui, sans-serif;
+  flex: 0 0 auto;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-control);
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 var(--text-sm) system-ui, sans-serif;
+  transition: background var(--dur) var(--ease-out), transform 90ms var(--ease-out);
 }
-.chat-send:disabled { opacity: 0.45; cursor: default; }
-.chat-send.stop { background: #e05b5b; color: #fff; }
+.chat-send:hover { background: var(--accent-hover); }
+.chat-send:active { transform: translateY(1px); }
+.chat-send:disabled { opacity: 0.45; cursor: default; background: var(--accent); transform: none; }
+.chat-send.stop { background: var(--danger); color: #fff; }
 
 /* ============================== Games window ============================== */
 .games-root {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  padding: 12px;
-  gap: 10px;
-  font: 13px/1.5 system-ui, "Segoe UI", sans-serif;
+  height: 100dvh;
+  padding: var(--space-4);
+  gap: var(--space-4);
+  font: var(--text-sm)/1.5 system-ui, "Segoe UI", sans-serif;
+  background: var(--surface);
+  color: var(--text);
 }
-.games-header { display: flex; align-items: center; gap: 10px; }
+.games-header { display: flex; align-items: center; gap: var(--space-4); }
 .games-avatar { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; }
 .games-avatar svg { width: 100%; height: 100%; overflow: visible; }
 .games-stats { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; }
-.games-sub { font-size: 11px; opacity: 0.65; }
+.games-sub { font-size: var(--text-2xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .games-bar {
-  height: 6px; border-radius: 3px; background: rgba(128,128,128,0.25); overflow: hidden; max-width: 220px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
+  max-width: 220px;
 }
-.games-bar i { display: block; height: 100%; background: #f0932b; transition: width 0.3s ease; }
+.games-bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: var(--accent);
+  transition: transform 300ms var(--ease-out);
+}
 
-.games-tabs { display: flex; gap: 6px; }
+/* Same segmented vocabulary as the Settings rail. */
+.games-tabs { display: flex; gap: var(--space-2); }
 .games-tabs button {
-  flex: 1 1 auto; padding: 7px 10px; border-radius: 8px; cursor: pointer; font: inherit; color: inherit;
-  border: 1px solid rgba(128,128,128,0.3); background: transparent;
+  flex: 1 1 auto;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  font: inherit;
+  color: var(--text-muted);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunken);
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out), transform 90ms var(--ease-out);
 }
-.games-tabs button.active { border-color: #f0932b; background: rgba(240,147,43,0.14); font-weight: 600; }
+.games-tabs button:hover { border-color: var(--accent); background: var(--accent-wash); color: var(--text); }
+.games-tabs button:active { transform: translateY(1px); }
+.games-tabs button.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
 
 .games-stage { flex: 1 1 auto; display: flex; }
 .games-toast {
-  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
-  padding: 6px 14px; border-radius: 10px; background: rgba(20,18,24,0.9); color: #ffd23f;
-  font-weight: 600; font-size: 12px;
+  position: fixed;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  box-shadow: var(--shadow-2);
+}
+@media (prefers-reduced-motion: no-preference) {
+  body:not(.reduced-motion) .games-toast { animation: toast-in 200ms var(--ease-out) both; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* Reaction game */
+/* Reaction game. The pad is the control, so its state is carried by fill. */
 .react-pad {
-  flex: 1 1 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px; border-radius: 12px; cursor: pointer; user-select: none; text-align: center; padding: 16px;
-  border: 1px solid rgba(128,128,128,0.3); background: rgba(128,128,128,0.1);
-  transition: background 0.15s ease;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-panel);
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-1);
+  transition: background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out);
 }
-.react-pad strong { font-size: 17px; }
-.react-pad em { font-style: normal; font-size: 12px; opacity: 0.65; }
-.react-pad.waiting { background: rgba(224,91,91,0.22); }
-.react-pad.ready { background: rgba(67,181,129,0.35); }
-.react-pad.tooSoon { background: rgba(224,91,91,0.3); }
+.react-pad strong { font-size: var(--text-lg); }
+.react-pad em { font-style: normal; font-size: var(--text-xs); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.react-pad.waiting {
+  background: color-mix(in srgb, var(--danger) 18%, transparent);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+.react-pad.ready {
+  background: color-mix(in srgb, var(--success) 32%, transparent);
+  border-color: var(--success);
+}
+.react-pad.tooSoon {
+  background: color-mix(in srgb, var(--danger) 26%, transparent);
+  border-color: var(--danger);
+}
 
 /* Memory game */
-.memory { flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px; }
-.memory-grid { flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.memory { flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--space-4); }
+.memory-grid { flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
 .memory-card {
-  border-radius: 10px; font-size: 22px; cursor: pointer; color: inherit; min-height: 56px;
-  border: 1px solid rgba(128,128,128,0.3); background: rgba(128,128,128,0.12);
-  transition: background 0.15s ease, transform 0.15s ease;
+  border-radius: var(--radius-control);
+  font-size: 22px;
+  cursor: pointer;
+  color: inherit;
+  min-height: 56px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-sunken);
+  transition: background var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
+    transform 90ms var(--ease-out);
 }
-.memory-card.open { background: rgba(240,147,43,0.2); border-color: #f0932b; }
-.memory-card.done { opacity: 0.45; cursor: default; }
-.memory-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.memory-card:hover:not(.done) { border-color: var(--accent); background: var(--accent-wash); }
+.memory-card:active:not(.done) { transform: scale(0.96); }
+.memory-card.open { background: var(--accent-wash-strong); border-color: var(--accent); }
+.memory-card.done { opacity: 0.4; cursor: default; }
+.memory-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.memory-foot span { font-variant-numeric: tabular-nums; }
 
 /* Character picker */
 .set-chars {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: var(--space-3);
 }
 .set-char {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 8px 4px 6px;
-  border-radius: 10px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  background: rgba(255, 255, 255, 0.55);
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-1) var(--space-2);
+  border-radius: var(--radius-panel);
+  border: 1px solid var(--line);
+  background: var(--surface-sunken);
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out),
+    background var(--dur) var(--ease-out), transform 90ms var(--ease-out);
 }
-@media (prefers-color-scheme: dark) {
-  .set-char { background: rgba(255, 255, 255, 0.04); }
-}
-.set-char:hover { border-color: #f0932b; }
+.set-char:hover { border-color: var(--accent); background: var(--accent-wash); }
+.set-char:active { transform: translateY(1px); }
 .set-char.active {
-  border-color: #f0932b;
-  box-shadow: 0 0 0 2px rgba(240, 147, 43, 0.35);
-  background: rgba(240, 147, 43, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 38%, transparent);
+  background: var(--accent-wash);
 }
 .set-char-preview { width: 58px; height: 58px; display: grid; place-items: center; }
 .set-char-preview svg { width: 100%; height: 100%; overflow: visible; }
-.set-char-name { font-size: 11px; font-weight: 600; }
+.set-char-name { font-size: var(--text-2xs); font-weight: 600; }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { t } from "@/config/i18n";
 import { PixelCat } from "@/pet/render/PixelCat";
 import { characterById } from "@/config/characters";
 import { loadSettings } from "@/config/settings";
@@ -48,8 +49,10 @@ export default function Games() {
           <span className="games-sub">
             Lv. {levelFor(progress.xp)} · {bond.label}
           </span>
+          {/* Scaled rather than width-animated: transform stays off the layout
+              path, so the bar cannot thrash the header as XP ticks up. */}
           <span className="games-bar" title={`${progress.xp} XP`}>
-            <i style={{ width: `${Math.round(levelProgress(progress.xp) * 100)}%` }} />
+            <i style={{ transform: `scaleX(${levelProgress(progress.xp).toFixed(4)})` }} />
           </span>
         </span>
       </header>
@@ -109,20 +112,20 @@ function Reaction({ onWin }: { onWin: (xp: number, bond: number) => void }) {
 
   const label =
     phase === "idle"
-      ? "Click to start"
+      ? t("games.clickToStart")
       : phase === "waiting"
-        ? "Wait for green…"
+        ? t("games.waitForGreen")
         : phase === "ready"
-          ? "CLICK!"
+          ? t("games.click")
           : phase === "tooSoon"
-            ? "Too soon! Click to retry"
-            : `${ms} ms — click to play again`;
+            ? t("games.tooSoon")
+            : t("games.msAgain", { ms });
 
   return (
     <div className={`react-pad ${phase}`} onClick={hit} role="button" tabIndex={0}
       onKeyDown={(e) => e.key === " " && hit()}>
       <strong>{label}</strong>
-      {best !== null && <em>best {best} ms</em>}
+      {best !== null && <em>{t("games.best", { ms: best })}</em>}
     </div>
   );
 }
@@ -189,9 +192,9 @@ function Memory({ onWin }: { onWin: (xp: number, bond: number) => void }) {
         })}
       </div>
       <div className="memory-foot">
-        <span>{complete ? `Solved in ${moves} moves! 🎉` : `Moves: ${moves}`}</span>
+        <span>{complete ? t("games.solved", { moves }) : t("games.moves", { moves })}</span>
         <button className="set-btn" onClick={reset}>
-          {complete ? "Play again" : "Reset"}
+          {complete ? t("games.playAgain") : t("games.reset")}
         </button>
       </div>
     </div>

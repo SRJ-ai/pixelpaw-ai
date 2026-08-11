@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PixelCat } from "@/pet/render/PixelCat";
 import { characterById } from "@/config/characters";
+import { t } from "@/config/i18n";
 import { loadSettings } from "@/config/settings";
 import { chat, providerInfo, type ChatMessage } from "@/ai/client";
 import { memoryBlock } from "@/ai/memory";
@@ -11,6 +12,9 @@ interface Turn {
   content: string;
   error?: boolean;
 }
+
+/** Starter prompts for the empty state, so it shows the job rather than greeting. */
+const SUGGESTIONS = ["chat.suggest1", "chat.suggest2", "chat.suggest3"] as const;
 
 /**
  * Chat window (§29). Streams replies from whichever provider is configured.
@@ -32,8 +36,9 @@ export default function Chat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, busy]);
 
-  async function send() {
-    const text = input.trim();
+  /** `preset` lets an empty-state suggestion send without typing it first. */
+  async function send(preset?: string) {
+    const text = (preset ?? input).trim();
     if (!text || busy) return;
     setInput("");
     const history: Turn[] = [...turns, { role: "user", content: text }];
@@ -61,24 +66,33 @@ export default function Chat() {
         return next;
       });
 
-    cancelRef.current = await chat(
-      ai.provider,
-      ai.model || info.defaultModel,
-      messages,
-      ai.baseUrl || undefined,
-      {
-        onChunk: (chunk) => setLast((p) => ({ ...p, content: p.content + chunk })),
-        onDone: () => {
-          setBusy(false);
-          cancelRef.current = null;
-        },
-        onError: (msg) => {
-          setLast((p) => ({ ...p, content: msg, error: true }));
-          setBusy(false);
-          cancelRef.current = null;
-        },
-      }
-    );
+    try {
+      cancelRef.current = await chat(
+        ai.provider,
+        ai.model || info.defaultModel,
+        messages,
+        ai.baseUrl || undefined,
+        {
+          onChunk: (chunk) => setLast((p) => ({ ...p, content: p.content + chunk })),
+          onDone: () => {
+            setBusy(false);
+            cancelRef.current = null;
+          },
+          onError: (msg) => {
+            setLast((p) => ({ ...p, content: msg, error: true }));
+            setBusy(false);
+            cancelRef.current = null;
+          },
+        }
+      );
+    } catch (err) {
+      // Setting up the stream can fail before any handler is wired. Without
+      // this the turn sits on its typing dots and the button stays on Stop
+      // with nothing to explain why.
+      setLast((p) => ({ ...p, content: String(err), error: true }));
+      setBusy(false);
+      cancelRef.current = null;
+    }
   }
 
   function stop() {
@@ -97,24 +111,47 @@ export default function Chat() {
           <strong>{settings.petName}</strong>
           <em className="chat-provider">{info.label}</em>
         </span>
-        <button className="chat-clear" onClick={() => setTurns([])} title="New conversation">
-          New
+        <button className="chat-clear" onClick={() => setTurns([])} title={t("chat.newTitle")}>
+          {t("chat.new")}
         </button>
       </header>
 
       {!ai.enabled && (
         <div className="chat-notice">
-          AI is turned off. Enable it in <strong>Settings → AI</strong> and pick a provider.
+          {t("chat.disabled")}
         </div>
       )}
 
       <div className="chat-log" ref={scrollRef}>
         {turns.length === 0 && (
-          <p className="chat-empty">Say hello to {settings.petName} 🐾</p>
+          <div className="chat-empty">
+            <p className="chat-empty-title">{t("chat.sayHello", { name: settings.petName })}</p>
+            {ai.enabled && (
+              <>
+                <p className="chat-empty-hint">{t("chat.tryOne")}</p>
+                <div className="chat-suggest">
+                  {SUGGESTIONS.map((key) => (
+                    <button key={key} type="button" className="set-chip" onClick={() => void send(t(key))}>
+                      {t(key)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         )}
-        {turns.map((t, i) => (
-          <div key={i} className={`chat-turn ${t.role}${t.error ? " error" : ""}`}>
-            {t.content || (busy && i === turns.length - 1 ? <span className="chat-dots">•••</span> : "")}
+        {turns.map((turn, i) => (
+          <div key={i} className={`chat-turn ${turn.role}${turn.error ? " error" : ""}`}>
+            {turn.content ||
+              (busy && i === turns.length - 1 ? (
+                <span className="chat-typing" role="status" aria-label={t("chat.thinking", { name: settings.petName })}>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              ) : (
+                ""
+              ))}
           </div>
         ))}
       </div>
@@ -123,7 +160,7 @@ export default function Chat() {
         <textarea
           rows={2}
           value={input}
-          placeholder={ai.enabled ? "Message your pet…" : "Enable AI in Settings first"}
+          placeholder={ai.enabled ? t("chat.placeholder") : t("chat.placeholderOff")}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -134,11 +171,11 @@ export default function Chat() {
         />
         {busy ? (
           <button className="chat-send stop" onClick={stop}>
-            Stop
+            {t("chat.stop")}
           </button>
         ) : (
           <button className="chat-send" onClick={() => void send()} disabled={!input.trim()}>
-            Send
+            {t("chat.send")}
           </button>
         )}
       </div>

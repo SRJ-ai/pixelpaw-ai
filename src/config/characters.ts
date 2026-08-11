@@ -14,6 +14,9 @@ export interface Accessories {
   emblem?: "star" | "paw" | null; // original chest emblem
   emblemColor?: string;
   headband?: string; // samurai headband color
+  /** Badge worn on the headband. Defaults to "OG"; non-Latin script gets a
+   *  deeper band and a script-capable font so it isn't clipped. */
+  headbandText?: string;
   katana?: boolean; // samurai sheathed sword
   antenna?: string; // robot antenna bulb color
   bellyScreen?: boolean; // robot chest display
@@ -106,7 +109,7 @@ export const CHARACTERS: CharacterTheme[] = [
       eyeColor: "#ffca3a",
       noseColor: "#2e3138",
     },
-    accessories: { headband: "#c0392b", katana: true },
+    accessories: { headband: "#c0392b", headbandText: "ఓజీ", katana: true },
   },
 ];
 

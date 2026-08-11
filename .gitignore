@@ -21,3 +21,6 @@ npm-debug.log*
 # Local data
 *.sqlite
 *.sqlite-*
+
+# Agent tooling: keep the dev-server definition, drop local run state
+.claude/scheduled_tasks.lock

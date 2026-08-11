@@ -5,6 +5,7 @@
  * move to SQLite in the AI phase; simple settings/state live here.
  */
 import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { setUiLang, type UiLang } from "./i18n";
 import { DEFAULT_APPEARANCE, type PetAppearance } from "@/types/pet";
 import type { ProviderId } from "@/ai/client";
 import type { LanguageId, PersonalityId } from "@/ai/personality";
@@ -27,8 +28,12 @@ export interface GeneralSettings {
   opacity: number; // 0.3..1
   reducedMotion: boolean;
   cosmicDecor: boolean; // ambient stars + black hole behind the pet
-  /** Pet never dozes off, and the render loop is kept alive even when the
-   *  window is occluded (WebView2 throttles rAF in that case). */
+  /** Language of the app's own chrome — separate from `ai.language`, which
+   *  only decides what language the AI *replies* in. */
+  uiLanguage: UiLang;
+  /** Pet never dozes off into the sleep animation. Unrelated to the render
+   *  loop, which WebView2 suspends whenever the window is hidden or occluded —
+   *  reminders and other clock-driven nudges run on a timer for that reason. */
   neverSleep: boolean;
 }
 
@@ -41,6 +46,28 @@ export interface ProductivitySettings {
   pomodoroBreakMin: number;
   taskNudgeEnabled: boolean; // periodic nudge about unfinished tasks
   taskNudgeMin: number;
+}
+
+/**
+ * Ready-made focus/break pairs (§36), so picking a working rhythm is one click
+ * rather than two sliders. The sliders stay for anything in between.
+ */
+export const POMODORO_PRESETS = [
+  { label: "25 / 5", focus: 25, brk: 5, hint: "Classic" },
+  { label: "30 / 15", focus: 30, brk: 15, hint: "Study" },
+  { label: "50 / 10", focus: 50, brk: 10, hint: "Deep work" },
+  { label: "90 / 20", focus: 90, brk: 20, hint: "Long haul" },
+] as const;
+
+/** Common "every N minutes" choices for the break and water nudges. */
+export const INTERVAL_PRESETS = [15, 30, 45, 60, 90] as const;
+
+/** Render an interval the way people say it: "45 min", "1 h", "1 h 30 m". */
+export function formatInterval(min: number): string {
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m === 0 ? `${h} h` : `${h} h ${m} m`;
 }
 
 /** A scheduled reminder (§34). */
@@ -106,6 +133,7 @@ export const DEFAULT_SETTINGS: Settings = {
     opacity: 1,
     reducedMotion: false,
     cosmicDecor: true,
+    uiLanguage: "en",
     neverSleep: true,
   },
   interactions: {
@@ -149,7 +177,10 @@ const KEY = "pixelpaw.settings.v1";
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return structuredClone(DEFAULT_SETTINGS);
+    if (!raw) {
+      setUiLang(DEFAULT_SETTINGS.general.uiLanguage);
+      return structuredClone(DEFAULT_SETTINGS);
+    }
     const p = JSON.parse(raw) as Partial<Settings>;
     const merged: Settings = {
       version: SETTINGS_VERSION,
@@ -168,8 +199,12 @@ export function loadSettings(): Settings {
     if ((p.version ?? 1) < SETTINGS_VERSION) {
       merged.general.scale = DEFAULT_SETTINGS.general.scale;
     }
+    // Every window loads settings on startup, so this is the one place that
+    // reliably arms the translator before anything renders.
+    setUiLang(merged.general.uiLanguage);
     return merged;
   } catch {
+    setUiLang(DEFAULT_SETTINGS.general.uiLanguage);
     return structuredClone(DEFAULT_SETTINGS);
   }
 }
@@ -185,7 +220,12 @@ export async function saveSettings(s: Settings): Promise<void> {
 }
 
 export function onSettingsChanged(cb: (s: Settings) => void): Promise<UnlistenFn> {
-  return listen<Settings>("settings:changed", (e) => cb(e.payload));
+  return listen<Settings>("settings:changed", (e) => {
+    // Apply the UI language before the callback so anything the listener
+    // re-renders already reads the new one.
+    setUiLang(e.payload.general.uiLanguage);
+    cb(e.payload);
+  });
 }
 
 /** Map a 0..1 "sensitivity" to the hunt speed threshold (px/ms). */

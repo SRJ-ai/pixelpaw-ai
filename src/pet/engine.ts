@@ -6,6 +6,7 @@ import type { AnimState, PetNeeds } from "@/types/pet";
 import { StateMachine } from "./animation/stateMachine";
 import { Animator } from "./animation/animator";
 import { IdleDirector } from "./behaviors/idle";
+import { dateKey, isReminderDue } from "./behaviors/reminders";
 import { applyRenderState, bindParts, type PetParts } from "./render/parts";
 import { subscribeControl, subscribeCursor, type CursorSample } from "@/platform/cursorBridge";
 import {
@@ -19,6 +20,7 @@ import {
   type AgentStatus,
 } from "@/platform/inputBridge";
 import { bus } from "@/events/eventBus";
+import { t } from "@/config/i18n";
 import { award, levelFor, loadProgress, saveProgress, XP, type Progress } from "./progression";
 import {
   DEFAULT_SETTINGS,
@@ -29,7 +31,19 @@ import {
 
 const clamp = (v: number, lo = -1, hi = 1) => Math.max(lo, Math.min(hi, v));
 const lerp = (a: number, b: number, f: number) => a + (b - a) * f;
-const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * How often the wall-clock schedulers (reminders, break, water, pomodoro, task
+ * nudges) run. They are deliberately *not* driven by the render loop: WebView2
+ * stops `requestAnimationFrame` outright while the window is hidden or fully
+ * occluded, which silently stalls every timer that hangs off it.
+ */
+const WALL_CLOCK_TICK_MS = 15000;
+
+/** What the pet says as taps pile up — one line per tier, worst last. */
+const POKE_KEYS = ["pet.poke1", "pet.poke2", "pet.poke3", "pet.poke4"] as const;
+/** Leave the pet alone this long and its patience resets. */
+const POKE_CALM_MS = 5000;
 
 /** A little critically-ish damped spring, used for drag stretch + release bounce. */
 class Spring {
@@ -112,6 +126,8 @@ export class PetEngine {
     downTime: 0,
   };
   private poke = { count: 0, windowStart: 0 };
+  /** Escalating irritation at repeated taps (see `escalatePoke`). */
+  private annoy = { count: 0, lastAt: 0, tier: -1 };
   private springX = new Spring();
   private springY = new Spring();
   private shake = { reversals: 0, lastDir: 0, windowStart: 0 };
@@ -126,6 +142,8 @@ export class PetEngine {
   private walk = { until: 0, dir: 1 as 1 | -1, startX: 0 };
 
   private facing: 1 | -1 = 1;
+  /** Whether the global cursor is currently over the drawn pet. */
+  private hovering = false;
 
   // typing (activity only — never content)
   private typing = { events: [] as { t: number; n: number }[], lastType: 0, overheatSaid: false };
@@ -144,6 +162,8 @@ export class PetEngine {
   private lastReminderCheck = 0;
   /** Reminder ids fired today, so each fires at most once per day. */
   private firedToday = new Map<string, string>();
+  /** Wall-clock scheduler handle (see `tickWallClock`). */
+  private wallClock: number | undefined;
   // pomodoro (§36) + focus (§37) + peek (§18)
   private pomo = { active: false, phase: "focus" as "focus" | "break", endsAt: 0 };
   private focusMode = false;
@@ -158,8 +178,11 @@ export class PetEngine {
     private onStatus?: (s: EngineStatus) => void,
     private onSay?: (text: string, ms: number) => void,
     private onBreak?: () => void,
-    /** Fired when a one-shot reminder has run, so the UI can disable it. */
-    private onReminderFired?: (id: string) => void
+    /**
+     * Fired when a reminder has run, so the UI can record the date it last
+     * fired (and switch off one-shots). `dateKey` is a local "YYYY-MM-DD".
+     */
+    private onReminderFired?: (id: string, dateKey: string) => void
   ) {}
 
   async attach(svg: SVGSVGElement, settings: Settings = DEFAULT_SETTINGS) {
@@ -189,14 +212,31 @@ export class PetEngine {
     this.lastWaterAt = this.lastFrame;
     this.lastTaskNudgeAt = this.lastFrame;
     this.raf = requestAnimationFrame(this.loop);
+    this.wallClock = window.setInterval(this.tickWallClock, WALL_CLOCK_TICK_MS);
   }
 
   detach() {
     this.running = false;
     cancelAnimationFrame(this.raf);
+    window.clearInterval(this.wallClock);
     this.unlisten.forEach((u) => u());
     this.unlisten = [];
   }
+
+  /**
+   * Everything scheduled against the clock rather than against frames. Kept on
+   * a timer so reminders still land when the pet is hidden or covered by a
+   * full-screen window, where the render loop is suspended.
+   */
+  private tickWallClock = () => {
+    if (!this.running || this.paused) return;
+    const now = performance.now();
+    this.updateBreak(now);
+    this.updateWater(now);
+    this.updateReminders(now);
+    this.updateTaskNudge(now);
+    this.updatePomodoro(now);
+  };
 
   pause() {
     this.paused = true;
@@ -242,7 +282,7 @@ export class PetEngine {
       this.onSay?.(`🏆 ${unlocked[0].title}`, 3200);
       this.onBreak?.();
     } else if (leveledUp) {
-      this.onSay?.(`Level ${levelFor(this.progress.xp)}! 🎉`, 3000);
+      this.onSay?.(t("pet.levelUp", { n: levelFor(this.progress.xp) }), 3000);
       this.onBreak?.();
     }
   }
@@ -309,6 +349,16 @@ export class PetEngine {
     this.prevX = s.x;
     this.prevY = s.y;
     this.lastMoveTime = now;
+
+    // Hover edges. The window is click-through unless the cursor is on the
+    // art, so the DOM never sees these — the global cursor stream is the only
+    // place they can be detected.
+    const over = this.overPet(s);
+    if (over !== this.hovering) {
+      this.hovering = over;
+      if (over) bus.emit("mouse.enter", { fracX: s.fracX, fracY: s.fracY });
+      else bus.emit("mouse.leave", {});
+    }
 
     // Wake from sleep on real movement.
     if (this.sm.is("sleep")) {
@@ -387,6 +437,26 @@ export class PetEngine {
     this.needs.affection = clamp(this.needs.affection - 0.02, 0, 1);
     if (this.poke.count >= 4) this.sm.request("dizzy", now);
     else this.sm.request("hurt", now);
+    this.escalatePoke(now);
+  }
+
+  /**
+   * Keep poking and the pet gets progressively more fed up, ending in a plea to
+   * stop. It speaks only when it moves up a tier, so a burst of taps produces a
+   * changing reaction rather than the same line over and over.
+   */
+  private escalatePoke(now: number) {
+    if (now - this.annoy.lastAt > POKE_CALM_MS) {
+      this.annoy.count = 0;
+      this.annoy.tier = -1;
+    }
+    this.annoy.lastAt = now;
+    this.annoy.count++;
+
+    const tier = Math.min(POKE_KEYS.length - 1, Math.floor((this.annoy.count - 1) / 2));
+    if (tier === this.annoy.tier) return;
+    this.annoy.tier = tier;
+    this.onSay?.(t(POKE_KEYS[tier]), 1800);
   }
 
   private savePos() {
@@ -477,7 +547,7 @@ export class PetEngine {
     if (canOverheat && rate >= this.overheatRate) {
       if (this.sm.request("overheat", now) || this.sm.is("overheat")) {
         if (!this.typing.overheatSaid) {
-          this.onSay?.("Whoa! Slow down! 🐾", 1800);
+          this.onSay?.(t("pet.overheat"), 1800);
           this.typing.overheatSaid = true;
         }
       }
@@ -519,11 +589,6 @@ export class PetEngine {
       this.updateTyping(now);
       this.updateMovement(dt, now);
       this.maybeIdle(now);
-      this.updateBreak(now);
-      this.updateWater(now);
-      this.updateReminders(now);
-      this.updateTaskNudge(now);
-      this.updatePomodoro(now);
     }
 
     this.render(now);
@@ -638,7 +703,7 @@ export class PetEngine {
   private triggerBreak(now: number) {
     this.lastBreakAt = now;
     this.sm.request("stretch", now);
-    this.onSay?.("Break time! Stretch a bit 🐾", 3400);
+    this.onSay?.(t("pet.break"), 3400);
     this.onBreak?.();
   }
 
@@ -652,7 +717,7 @@ export class PetEngine {
       case "thinking":
         this.agentBusy = true;
         this.sm.request("curious", now);
-        this.onSay?.(`${who} is working…`, 2200);
+        this.onSay?.(t("pet.agentWorking", { who }), 2200);
         break;
       case "waiting":
         this.sm.request("curious", now);
@@ -661,14 +726,14 @@ export class PetEngine {
         this.agentBusy = false;
         this.sm.request("happy", now);
         this.needs.happiness = clamp(this.needs.happiness + 0.05, 0, 1);
-        this.onSay?.("Done! 🎉", 2600);
+        this.onSay?.(t("pet.agentDone"), 2600);
         this.onBreak?.();
         this.grant(XP.agentSuccess, 5, "agentSuccesses");
         break;
       case "error":
         this.agentBusy = false;
         this.sm.request("surprised", now);
-        this.onSay?.("That one failed — let's retry 🐾", 3000);
+        this.onSay?.(t("pet.agentError"), 3000);
         break;
       case "cancelled":
       case "idle":
@@ -688,7 +753,7 @@ export class PetEngine {
   private triggerWater(now: number) {
     this.lastWaterAt = now;
     this.sm.request("happy", now);
-    this.onSay?.("Water break! Sip some water 💧", 3400);
+    this.onSay?.(t("pet.water"), 3400);
   }
 
   // ---- Scheduled reminders (§34) ----
@@ -698,20 +763,18 @@ export class PetEngine {
     this.lastReminderCheck = now;
 
     const d = new Date();
-    const today = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-    const hhmm = `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-    const isWeekday = d.getDay() >= 1 && d.getDay() <= 5;
+    const today = dateKey(d);
 
     for (const r of this.settings.reminders) {
-      if (!r.enabled || r.time !== hhmm) continue;
-      if (r.recurrence === "weekdays" && !isWeekday) continue;
-      if (this.firedToday.get(r.id) === today) continue;
+      // `firedToday` covers the gap before the `lastFired` save lands; the
+      // persisted half is what survives a restart.
+      if (!isReminderDue(r, { now: d, firedThisSession: this.firedToday.get(r.id) })) continue;
 
       this.firedToday.set(r.id, today);
       this.sm.request("surprised", now);
       this.onSay?.(`⏰ ${r.title}`, 5200);
       this.onBreak?.(); // reuse the attention-grabbing flourish
-      if (r.recurrence === "once") this.onReminderFired?.(r.id);
+      this.onReminderFired?.(r.id, today);
     }
   }
 
@@ -741,13 +804,13 @@ export class PetEngine {
     this.pomo.endsAt = now + this.settings.productivity.pomodoroFocusMin * 60000;
     this.focusMode = true;
     this.sm.request("sit", now);
-    this.onSay?.("Focus time — let's go 🐾", 3000);
+    this.onSay?.(t("pet.focusStart"), 3000);
   }
 
   private stopPomodoro() {
     this.pomo.active = false;
     this.focusMode = false;
-    this.onSay?.("Pomodoro stopped", 1600);
+    this.onSay?.(t("pet.pomodoroStopped"), 1600);
   }
 
   private updatePomodoro(now: number) {
@@ -757,12 +820,12 @@ export class PetEngine {
       this.pomo.endsAt = now + this.settings.productivity.pomodoroBreakMin * 60000;
       this.focusMode = false;
       this.sm.request("stretch", now);
-      this.onSay?.("Focus done! Break time 🎉", 3400);
+      this.onSay?.(t("pet.focusDone"), 3400);
       this.onBreak?.();
     } else {
       this.pomo.active = false;
       this.sm.request("happy", now);
-      this.onSay?.("Pomodoro complete — great work! 🎉", 3600);
+      this.onSay?.(t("pet.pomodoroDone"), 3600);
       this.grant(XP.pomodoroComplete, 10, "pomodoros");
     }
   }
