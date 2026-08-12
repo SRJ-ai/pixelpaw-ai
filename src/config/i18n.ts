@@ -209,6 +209,19 @@ const STRINGS = {
   "games.playAgain": { en: "Play again", te: "మళ్ళీ ఆడు" },
   "games.reset": { en: "Reset", te: "మొదటికి" },
 
+  "set.note.openChat": {
+    en: "Right-click the pet and choose “Chat with pet…” to start a conversation.",
+    te: "సంభాషణ మొదలుపెట్టడానికి పెంపుడుపై రైట్-క్లిక్ చేసి “Chat with pet…” ఎంచుకో.",
+  },
+  "set.note.agentDown": {
+    en: "Endpoint unavailable (port in use).",
+    te: "ఎండ్‌పాయింట్ అందుబాటులో లేదు (పోర్ట్ వాడుకలో ఉంది).",
+  },
+  "set.note.agentStatuses": {
+    en: "Valid statuses: working, thinking, waiting, success, error, cancelled, idle.",
+    te: "చెల్లుబాటు అయ్యే స్థితులు: working, thinking, waiting, success, error, cancelled, idle.",
+  },
+
   "set.note.music": {
     en: "Controls whichever player currently has playback (Spotify, a browser tab, a local player) using the standard media keys. Also on the pet's right-click menu, and on the pill above the pet.",
     te: "ఇప్పుడు ప్లే అవుతున్న ప్లేయర్‌ను (Spotify, బ్రౌజర్ ట్యాబ్, లోకల్ ప్లేయర్) స్టాండర్డ్ మీడియా కీలతో నియంత్రిస్తుంది. పెంపుడు రైట్-క్లిక్ మెనూలోనూ, పెంపుడు పైన ఉన్న పిల్‌లోనూ ఉంటుంది.",

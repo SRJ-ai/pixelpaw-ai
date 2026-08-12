@@ -229,6 +229,33 @@ body {
   }
 }
 
+/* Crash fallbacks (see ui/ErrorBoundary.tsx). The pet's marker stays small but
+   hit-testable so the native right-click menu is still reachable. */
+.pp-crash {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(209, 73, 63, 0.94);
+  color: #fff;
+  font: 700 15px/1 system-ui, sans-serif;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.crash-root {
+  padding: var(--space-6) var(--space-5);
+  font: var(--text-sm)/1.5 system-ui, "Segoe UI", sans-serif;
+  color: var(--text);
+}
+.crash-root h1 { font-size: var(--text-lg); margin: 0 0 var(--space-3); }
+.crash-root p { color: var(--text-muted); margin: 0 0 var(--space-5); max-width: 60ch; }
+.crash-actions { display: flex; gap: var(--space-3); }
+.crash-actions .set-btn { margin-top: 0; }
+
 /* Speech bubble above the pet. */
 .pp-bubble {
   position: absolute;

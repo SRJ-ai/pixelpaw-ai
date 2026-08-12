@@ -3,6 +3,7 @@ import App from "./App";
 import Settings from "./settings/Settings";
 import Chat from "./chat/Chat";
 import Games from "./games/Games";
+import { ErrorBoundary } from "./ui/ErrorBoundary";
 import "./styles.css";
 
 // One bundle, several windows, routed by hash:
@@ -19,6 +20,9 @@ if (route === "chat") {
 
 // NOTE: no <React.StrictMode> — its double-invoked effects would start the pet
 // engine (rAF loop + native listeners) twice in dev.
+const view =
+  route === "settings" ? <Settings /> : route === "chat" ? <Chat /> : route === "games" ? <Games /> : <App />;
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  route === "settings" ? <Settings /> : route === "chat" ? <Chat /> : route === "games" ? <Games /> : <App />
+  <ErrorBoundary variant={route ? "window" : "pet"}>{view}</ErrorBoundary>
 );

@@ -93,14 +93,21 @@ export default function Settings() {
             key={x.id}
             type="button"
             role="tab"
+            id={`set-tab-${x.id}`}
+            aria-controls="set-panel"
             aria-selected={tab === x.id}
+            // Only the selected tab is a tab stop; arrows move within the set.
+            // That is the expected keyboard model for a tablist.
+            tabIndex={tab === x.id ? 0 : -1}
             className={"set-tab" + (tab === x.id ? " on" : "")}
             onClick={() => setTab(x.id)}
             onKeyDown={(e) => {
               const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
               if (!dir) return;
               e.preventDefault();
-              setTab(TABS[(idx + dir + TABS.length) % TABS.length].id);
+              const next = TABS[(idx + dir + TABS.length) % TABS.length];
+              setTab(next.id);
+              document.getElementById(`set-tab-${next.id}`)?.focus();
             }}
           >
             {t(x.label)}
@@ -108,6 +115,7 @@ export default function Settings() {
         ))}
       </nav>
 
+      <div id="set-panel" role="tabpanel" aria-labelledby={`set-tab-${tab}`}>
       {tab === "pet" && (
         <>
         <Section title={t("set.section.character")}>
@@ -389,7 +397,7 @@ export default function Settings() {
 
       {tab === "ai" && (
         <>
-        <Section title="AI">
+        <Section title={t("set.section.ai")}>
           <Toggle label={t("set.aiEnabled")} checked={s.ai.enabled} onChange={(v) => patch((d) => (d.ai.enabled = v))} />
           <Row label={t("set.provider")}>
             <select
@@ -472,7 +480,7 @@ export default function Settings() {
           <Row label={t("set.yourName")}>
             <input className="set-input" value={s.ai.userName} placeholder={t("set.optional")} onChange={(e) => patch((d) => (d.ai.userName = e.target.value))} />
           </Row>
-          <p className="set-note">Open the chat from the tray: <strong>Chat with pet…</strong></p>
+          <p className="set-note">{t("set.note.openChat")}</p>
         </Section>
 
         <Section title={t("set.section.memory")}>
@@ -504,9 +512,9 @@ export default function Settings() {
 X-PixelPaw-Token: ${agentInfo.token}
 {"agent":"claude-code","status":"working"}`}</pre>
           ) : (
-            <p className="set-note">Endpoint unavailable (port in use).</p>
+            <p className="set-note">{t("set.note.agentDown")}</p>
           )}
-          <p className="set-note">Valid statuses: working, thinking, waiting, success, error, cancelled, idle.</p>
+          <p className="set-note">{t("set.note.agentStatuses")}</p>
         </Section>
         </>
       )}
@@ -545,6 +553,7 @@ X-PixelPaw-Token: ${agentInfo.token}
         </Section>
         </>
       )}
+      </div>
     </div>
   );
 }
