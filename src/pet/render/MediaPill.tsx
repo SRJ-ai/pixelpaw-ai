@@ -99,6 +99,30 @@ export function MediaPill({ open, onBox, onHoverChange, onPress }: Props) {
     });
   }, [open, onBox]);
 
+  const button = (b: (typeof BUTTONS)[number], variant: "ghost" | "primary") => (
+    <button
+      key={b.action}
+      type="button"
+      className={"pp-pill-btn" + (variant === "primary" ? " primary" : "")}
+      title={b.title}
+      aria-label={b.title}
+      tabIndex={open ? 0 : -1}
+      onClick={() => {
+        onPress();
+        void mediaControl(b.action);
+      }}
+    >
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        {ICONS[b.icon]}
+      </svg>
+    </button>
+  );
+
+  // Transport and volume are different jobs, so they read as two clusters with
+  // play/pause carrying the weight rather than six identical buttons in a row.
+  const transport = BUTTONS.slice(0, 3);
+  const volume = BUTTONS.slice(3);
+
   return (
     <div
       ref={ref}
@@ -107,29 +131,11 @@ export function MediaPill({ open, onBox, onHoverChange, onPress }: Props) {
       onMouseEnter={() => onHoverChange(true)}
       onMouseLeave={() => onHoverChange(false)}
     >
-      {BUTTONS.map((b) => (
-        <button
-          key={b.action}
-          type="button"
-          className="pp-pill-btn"
-          title={b.title}
-          aria-label={b.title}
-          tabIndex={open ? 0 : -1}
-          onClick={() => {
-            onPress();
-            void mediaControl(b.action);
-          }}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            {ICONS[b.icon]}
-          </svg>
-        </button>
-      ))}
-      <span className="pp-pill-eq" aria-hidden="true">
-        <i />
-        <i />
-        <i />
+      <span className="pp-pill-group">
+        {transport.map((b) => button(b, b.action === "play_pause" ? "primary" : "ghost"))}
       </span>
+      <span className="pp-pill-sep" aria-hidden="true" />
+      <span className="pp-pill-group">{volume.map((b) => button(b, "ghost"))}</span>
     </div>
   );
 }

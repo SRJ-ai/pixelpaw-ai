@@ -38,11 +38,11 @@
   "applicationCategory": "UtilitiesApplication",
   "applicationSubCategory": "Desktop companion",
   "operatingSystem": "Windows 10, Windows 11",
-  "softwareVersion": "0.1.0",
+  "softwareVersion": "0.1.1",
   "url": "https://srj-ai.github.io/pixelpaw-ai/",
-  "downloadUrl": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe",
-  "installUrl": "https://github.com/SRJ-ai/pixelpaw-ai/releases/tag/v0.1.0",
-  "fileSize": "1.75 MB",
+  "downloadUrl": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.1/PixelPaw.AI_0.1.1_x64-setup.exe",
+  "installUrl": "https://github.com/SRJ-ai/pixelpaw-ai/releases/tag/v0.1.1",
+  "fileSize": "1.76 MB",
   "image": "https://srj-ai.github.io/pixelpaw-ai/og-image.png",
   "screenshot": "https://srj-ai.github.io/pixelpaw-ai/og-image.png",
   "description": "An original pixel-art desktop pet for Windows that reacts to your cursor and typing, runs Pomodoro timers, sends water and break reminders, controls music playback, and reacts to coding-agent activity. Includes an optional AI companion supporting Claude Code, Anthropic, OpenAI, Gemini, OpenAI-compatible endpoints and local Ollama models.",
@@ -52,10 +52,11 @@
     "Keyboard and scroll reactions",
     "Pomodoro, focus mode and peek mode",
     "Water, stretch and schedule reminders with a task list",
-    "Media playback controls",
+    "Media playback controls from a pill above the pet",
     "Mini-games with XP, bond levels and achievements",
     "Optional AI chat with multiple providers",
-    "Coding-agent status reactions"
+    "Coding-agent status reactions",
+    "English and Telugu interface"
   ],
   "offers": {
     "@type": "Offer",
@@ -71,6 +72,66 @@
   }
 }
 </script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is PixelPaw AI free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. PixelPaw AI is free and open source, with no account, no sign-up and no paid tier. The installer is 1.76 MB and it runs on Windows 10 and 11."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I open settings or quit PixelPaw AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Right-click the cat. That menu holds settings, chat, games, media controls and quit. Windows files brand-new notification-area icons into the hidden overflow flyout behind the caret arrow on the taskbar, so the tray icon is often invisible on a first run; the right-click menu carries the same items. Settings also has a Quit button."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does PixelPaw AI log my keystrokes or read my screen?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. It counts keystrokes to measure typing rhythm, which drives the kneading and overheat animations, but never records which keys were pressed. It takes no screenshots, reads no screen content, and sends no telemetry. Turning an interaction off in Settings stops that monitoring entirely."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does PixelPaw AI need an internet connection or an API key?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Neither is required. The pet works fully offline. An API key is only needed for the optional AI chat, which is off by default and supports Claude Code, Anthropic, OpenAI, Gemini, OpenAI-compatible endpoints and local Ollama models. Keys are stored locally by the Rust layer and never exposed to the web view."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does Windows SmartScreen warn about the installer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The installer is not code-signed, so Windows cannot display a known publisher. Choose More info and then Run anyway to continue. The full source is public if you would rather build it yourself."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is PixelPaw AI based on an existing character?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Every character, all the art, the animation and the code are original. The archetypes are deliberately generic and are not copies of, or affiliated with, any existing product, franchise or trademark."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="alternate" type="text/plain" href="https://srj-ai.github.io/pixelpaw-ai/llms.txt" title="llms.txt">
+<link rel="alternate" type="text/plain" href="https://srj-ai.github.io/pixelpaw-ai/faqs.txt" title="FAQ">
 <title>PixelPaw AI — a pixel cat that lives on your desktop</title>
 <style>
   /* ---------- tokens ---------- */
@@ -186,6 +247,10 @@
   section { padding: 64px 0; border-top: 1px solid var(--line); }
   h2 { font: var(--display); font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -0.03em; margin: 10px 0 0; text-wrap: balance; }
   .sec-lede { color: var(--haze); max-width: 56ch; margin: 12px 0 0; }
+  .whatsnew { list-style: none; padding: 0; margin: 18px 0 0; max-width: 60ch; display: grid; gap: 8px; }
+  .whatsnew li { position: relative; padding-left: 18px; color: var(--haze); font-size: 14px; line-height: 1.55; }
+  .whatsnew li::before { content: ""; position: absolute; left: 0; top: 9px; width: 6px; height: 6px; border-radius: 50%; background: var(--paw); }
+  .whatsnew strong { color: var(--text); font-weight: 600; }
 
   .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin-top: 32px; }
   .cell { background: var(--surface); padding: 22px; }
@@ -268,10 +333,10 @@
         Pomodoros — and celebrates when your coding agent finishes a task.
       </p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe">Download for Windows</a>
+        <a class="btn btn-primary" href="https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.1/PixelPaw.AI_0.1.1_x64-setup.exe">Download for Windows</a>
         <a class="btn btn-ghost" href="#ai">See the AI side</a>
       </div>
-      <p class="meta">Free · Open source · Works offline · No account required · 1.75 MB</p>
+      <p class="meta">Free · Open source · Works offline · No account required · 1.76 MB</p>
     </div>
 
     <div class="mock">
@@ -373,8 +438,8 @@
       </div>
       <div class="cell">
         <span class="tag pink">Control</span>
-        <h3>Music from the tray</h3>
-        <p>Play, pause, skip and adjust volume for whatever's playing — Spotify, a browser tab, anything.</p>
+        <h3>Music without leaving the page</h3>
+        <p>Hover the cat and a control pill slides out above its head: play, pause, skip and volume for whatever's playing, be it Spotify, a browser tab, anything.</p>
       </div>
       <div class="cell">
         <span class="tag pink">Play</span>
@@ -464,11 +529,17 @@ curl -X POST http://127.0.0.1:8787/agent/status \
     <span class="eyebrow">Get it</span>
     <h2>Adopt one.</h2>
     <p class="sec-lede">Windows 10 or 11. Around 25 MB of memory while it's pottering about on your desktop.</p>
+    <ul class="whatsnew">
+      <li><strong>New in 0.1.1.</strong> Right-click the cat for settings, chat, games and quit. Windows hides new tray icons behind the taskbar arrow, so the tray is no longer the only way in.</li>
+      <li>Launching again brings the running cat forward instead of adding a second one.</li>
+      <li>Reminders, breaks and Pomodoro now fire even while the pet is hidden or covered.</li>
+      <li>A media pill above the pet, Pomodoro presets, and a Telugu interface.</li>
+    </ul>
     <div class="cta-row">
-      <a class="btn btn-primary" href="https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe">Download for Windows</a>
+      <a class="btn btn-primary" href="https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.1/PixelPaw.AI_0.1.1_x64-setup.exe">Download for Windows</a>
       <a class="btn btn-ghost" href="https://github.com/SRJ-ai/pixelpaw-ai" target="_blank" rel="noopener noreferrer">Source on GitHub</a>
     </div>
-    <p class="meta">PixelPaw AI 0.1.0 · NSIS installer · 1.75 MB · Windows 10 / 11</p>
+    <p class="meta">PixelPaw AI 0.1.1 · NSIS installer · 1.76 MB · Windows 10 / 11</p>
     <p class="meta">The build is unsigned, so SmartScreen will flag the publisher — choose “More info → Run anyway” if you're happy to proceed.</p>
   </div>
 </section>

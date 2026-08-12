@@ -1,0 +1,143 @@
+# PixelPaw AI — Frequently Asked Questions
+
+Last updated: 11 August 2026 (version 0.1.1)
+Home: https://srj-ai.github.io/pixelpaw-ai/
+Source: https://github.com/SRJ-ai/pixelpaw-ai
+
+---
+
+## Getting it
+
+### What is PixelPaw AI?
+A free, open-source desktop pet for Windows. An original pixel-art cat lives on your
+desktop in a transparent always-on-top window, reacts to your cursor and typing, runs
+Pomodoro timers, reminds you to drink water, controls your music, and can chat with
+you through an AI provider you choose.
+
+### What does it cost?
+Nothing. It is free and open source, with no account, no sign-up and no paid tier.
+
+### Which systems does it run on?
+Windows 10 and Windows 11, 64-bit. There is no macOS or Linux build yet.
+
+### How big is it and how much memory does it use?
+The installer is 1.76 MB. It uses roughly 25 MB of memory while idling on your
+desktop.
+
+### Why does Windows SmartScreen warn me when I install it?
+The installer is not code-signed, so Windows cannot show a known publisher. Choose
+"More info" and then "Run anyway" if you are happy to proceed. The source is public
+if you would rather build it yourself.
+
+### Does it need an internet connection?
+No. Everything except the optional AI chat works fully offline. If you enable AI
+chat, it contacts only the provider you configured.
+
+---
+
+## Using it
+
+### Where is the menu? I cannot find any way to open settings.
+Right-click the cat. Windows files brand-new notification-area icons into the hidden
+overflow flyout behind the `^` arrow on the taskbar, so the tray icon is frequently
+invisible on a first run. Version 0.1.1 added a right-click menu on the pet itself
+with the same items, so the tray is a convenience rather than the only route in.
+
+### How do I quit the app?
+Right-click the pet and choose "Quit PixelPaw", or open Settings and use the Quit
+button at the bottom of the More tab.
+
+### I clicked the shortcut again and got a second cat.
+That was a bug in 0.1.0, fixed in 0.1.1. Launching again now brings the running pet
+forward instead of starting another copy. If you are still on 0.1.0, end the extra
+`pixelpaw-ai.exe` processes in Task Manager and update.
+
+### My reminders never fired.
+Also fixed in 0.1.1. The scheduler used to run inside the render loop, which the
+Windows web view suspends whenever the pet's window is hidden or fully covered by
+another window. Reminders now run on an independent timer, and a reminder that comes
+due while the machine is busy or asleep still fires when the app notices, rather than
+being skipped.
+
+### How do I control music?
+Hover the cat and a pill slides out above its head with previous, play/pause, next
+and volume. It sends the standard OS media keys, so it drives whichever player
+currently owns playback: Spotify, a browser tab, or a local player. The same controls
+are on the right-click menu and in Settings.
+
+### Can I change how it looks?
+Yes. Settings has six original characters (classic, robot, caped hero, masked
+acrobat, armoured tech, and a samurai) and every colour on the cat, including body,
+belly, pattern, inner ear, eyes and nose, is adjustable. You can also change its
+size, opacity and whether it stays on top.
+
+### Can I make it quieter or less distracting?
+Turn off individual interactions in Settings under Behavior. You can disable gaze,
+hunting, petting, dragging, kneading, the overheat gag and scroll reactions
+independently, and there is a reduced-motion option. Pause stops the behaviour loop
+entirely.
+
+### What languages does it support?
+The interface is available in English and Telugu, switchable under Behavior in
+Settings. The AI companion can additionally reply in Hindi or a natural Telugu and
+English mix.
+
+---
+
+## The AI side
+
+### Do I need an API key?
+Only if you want the chat. The pet is fully functional without it. AI is off by
+default.
+
+### Which AI providers work?
+Claude Code CLI, Anthropic, OpenAI, Google Gemini, any OpenAI-compatible endpoint,
+and local models through Ollama.
+
+### Where are my API keys stored?
+In the app's local data directory, handled by the Rust layer. Keys are never exposed
+to the web view and never leave your machine except in requests to the provider you
+picked.
+
+### What does "reacts to your coding agent" mean?
+The app runs a loopback-only endpoint on 127.0.0.1 that a coding agent can post
+status to: working, thinking, waiting, success, error, cancelled or idle. The pet
+then reacts, staying attentive while work runs and celebrating when it succeeds. The
+endpoint is token-authenticated and is not reachable from outside your machine.
+
+---
+
+## Privacy
+
+### Does it record what I type?
+No. It counts keystrokes to measure typing rhythm, which is what drives the kneading
+and overheat animations. It never records which keys were pressed and never stores
+or transmits any of it.
+
+### Does it take screenshots or read my screen?
+No. It reads the global cursor position, the scroll wheel delta, and a keystroke
+count. Nothing else.
+
+### Is there any telemetry or analytics?
+None. There are no analytics, no crash reporting and no phone-home of any kind.
+
+### What data leaves my computer?
+Nothing, unless you enable AI chat. In that case your messages and any memories the
+pet has saved are sent to the AI provider you configured, and nowhere else.
+
+---
+
+## About the project
+
+### Is this based on an existing character or product?
+No. Every character, all the art, the animation and the code are original. The
+archetypes are deliberately generic (a robot, a caped hero, a samurai) and are not
+copies of, or affiliated with, any existing product, franchise or trademark.
+
+### What is it built with?
+Tauri v2 with a Rust backend, and a React and TypeScript front end. The cat is drawn
+as procedural SVG rather than sprite sheets, which is why it recolours cleanly and
+scales without blurring.
+
+### Where do I report a bug or ask for a feature?
+Open an issue at https://github.com/SRJ-ai/pixelpaw-ai/issues

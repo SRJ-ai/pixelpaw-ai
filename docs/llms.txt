@@ -1,0 +1,78 @@
+# PixelPaw AI
+
+> A free, open-source pixel-art desktop pet for Windows 10 and 11. It lives on your
+> desktop as a transparent always-on-top window, reacts to your cursor and typing,
+> runs Pomodoro timers, sends water and break reminders, controls music playback,
+> and reacts when a coding agent finishes a task. An optional AI companion supports
+> Claude Code, Anthropic, OpenAI, Gemini, OpenAI-compatible endpoints and local
+> Ollama models.
+
+Current version: 0.1.1 (released 11 August 2026)
+Licence: open source, free, no account required
+Platform: Windows 10 and Windows 11, x64
+Download size: 1.76 MB (NSIS installer, unsigned)
+Runtime memory: roughly 25 MB idle
+
+PixelPaw AI is an original work. The characters, art, animation and code are
+original archetypes and are not affiliated with, derived from, or copies of any
+existing product or franchise.
+
+## What it does
+
+- **Desktop presence.** A transparent, frameless, always-on-top window. The rest of
+  the desktop stays clickable because the app hit-tests the cursor against the cat's
+  silhouette and toggles click-through.
+- **Reacts to you.** Eye gaze follows the cursor, the cat kneads its paws while you
+  type, overheats if you type very fast, and responds to scrolling. It counts
+  keystrokes for timing only and never records which keys.
+- **Handle it.** Drag and fling it with spring physics, stroke it to make it purr,
+  tap it repeatedly and it gets progressively more fed up.
+- **Productivity.** Pomodoro with presets (25/5, 30/15, 50/10, 90/20), water and
+  stretch reminders at intervals up to 90 minutes, scheduled reminders with
+  once/daily/weekday recurrence, and a task list it nudges you about.
+- **Media control.** A pill slides out above the pet on hover with previous,
+  play/pause, next and volume. It drives the standard OS media keys, so it works
+  with Spotify, a browser tab, or any local player.
+- **Games and progression.** Reaction and memory mini-games earn XP, and a bond
+  level deepens from Stranger to Special Bond through ordinary use.
+- **Characters.** Six original archetypes (classic, robot, caped hero, masked
+  acrobat, armoured tech, and a samurai cat with a cinematic entrance), each fully
+  recolourable.
+- **Languages.** The interface ships in English and Telugu. The AI companion can
+  additionally reply in Hindi or a Telugu-English mix.
+- **Coding-agent reactions.** A loopback-only HTTP endpoint on 127.0.0.1 lets a
+  coding agent post its status, and the pet reacts when work starts, succeeds or
+  fails.
+
+## Privacy
+
+PixelPaw AI is local-first. There is no telemetry, no keystroke logging, no
+screenshots and no network calls unless you enable the AI companion and chat with
+it. Turning an interaction off stops that monitoring entirely. API keys are stored
+by the Rust layer in the app's local data directory and are never exposed to the
+web view.
+
+## Common questions
+
+- **Where is the menu?** Right-click the pet. Windows files new notification-area
+  icons into the hidden overflow flyout behind the `^` arrow on the taskbar, so the
+  tray icon is often invisible on first run. The right-click menu carries the same
+  items: show/hide, pause, Pomodoro, media, chat, games, settings and quit.
+- **How do I quit?** Right-click the pet and choose Quit PixelPaw, or use the Quit
+  button at the bottom of Settings.
+- **Why does SmartScreen warn me?** The installer is unsigned. Choose
+  "More info" then "Run anyway" if you are happy to proceed.
+- **Does it need an internet connection?** No. It works fully offline. Only the
+  optional AI chat makes network calls, and only to the provider you configure.
+
+## Links
+
+- [Home](https://srj-ai.github.io/pixelpaw-ai/): the landing page, with a live
+  interactive cat you can pet in the browser.
+- [Download 0.1.1](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.1/PixelPaw.AI_0.1.1_x64-setup.exe): the Windows x64 installer.
+- [Releases](https://github.com/SRJ-ai/pixelpaw-ai/releases): all versions and
+  release notes.
+- [Source](https://github.com/SRJ-ai/pixelpaw-ai): the full source, built with
+  Tauri v2, Rust, React and TypeScript.
+- [FAQ](https://srj-ai.github.io/pixelpaw-ai/faqs.txt): longer answers to common
+  questions.

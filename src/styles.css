@@ -134,30 +134,31 @@ body {
 }
 
 /* ---------------------------------------------------------------- media pill
-   A capsule that slides out above the pet's head with transport controls.
-   Anchored off --pet-scale like the speech bubble, so it tracks the drawn
-   size; when it is out, the bubble is pushed above it (see .pp-bubble). */
+   A capsule that slides out above the pet with transport controls. It floats
+   over unknown wallpaper, so it brings its own scrim instead of the window
+   tokens, and it is built as a real material: a tinted base, a top-light
+   gradient, a hairline outer ring and an inner highlight. Anchored off
+   --pet-scale like the speech bubble so it tracks the drawn size. */
 .pp-pill {
   position: absolute;
   bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 16px), calc(100% - 30px));
   left: 50%;
   display: flex;
   align-items: center;
-  gap: 1px;
-  padding: 3px 7px;
+  gap: 8px;
+  padding: 5px 11px;
   border-radius: var(--radius-pill);
-  /* Layered: a tinted scrim, a top highlight, and a 1px inner edge, so the
-     capsule reads as a physical object on any wallpaper instead of a flat
-     rectangle. Blur is the effect here, not decoration. */
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03)),
-    rgba(16, 17, 22, 0.82);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02) 55%),
+    rgba(14, 15, 20, 0.86);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 2px 6px rgba(0, 0, 0, 0.34),
-    0 12px 28px rgba(0, 0, 0, 0.42);
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 3px 8px rgba(0, 0, 0, 0.32),
+    0 14px 34px rgba(0, 0, 0, 0.46);
   opacity: 0;
   transform: translate(-50%, 8px) scale(0.86);
   transform-origin: center bottom;
@@ -169,44 +170,60 @@ body {
   transform: translate(-50%, 0) scale(1);
   pointer-events: auto;
 }
+
+.pp-pill-group { display: flex; align-items: center; gap: 2px; }
+/* Hairline between transport and volume: two jobs, not one row of six. */
+.pp-pill-sep {
+  width: 1px;
+  height: 18px;
+  border-radius: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 255, 255, 0.22) 20%,
+    rgba(255, 255, 255, 0.22) 80%,
+    transparent
+  );
+}
+
 .pp-pill-btn {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: #eceef4;
+  color: rgba(238, 240, 246, 0.82);
   cursor: pointer;
-  transition: background 0.12s ease, transform 0.09s ease;
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out),
+    transform 90ms var(--ease-out);
 }
-.pp-pill-btn svg { width: 13px; height: 13px; fill: currentColor; stroke: currentColor; }
-.pp-pill-btn:hover { background: var(--accent); color: var(--accent-ink); }
-.pp-pill-btn:active { transform: scale(0.88); }
+.pp-pill-btn svg { width: 14px; height: 14px; fill: currentColor; stroke: currentColor; }
+.pp-pill-btn:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.pp-pill-btn:active { transform: scale(0.9); }
 
-/* Decorative equaliser, animated only while the pill is out. */
-.pp-pill-eq { display: flex; align-items: flex-end; gap: 2px; height: 12px; margin-left: 4px; }
-.pp-pill-eq i {
-  width: 2px;
-  height: 11px;
-  border-radius: 1px;
-  background: var(--accent);
-  transform-origin: bottom;
-  transform: scaleY(0.3);
+/* Play/pause is the reason the pill exists, so it is the only filled control. */
+.pp-pill-btn.primary {
+  width: 28px;
+  height: 28px;
+  color: #fff;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.1));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 1px 3px rgba(0, 0, 0, 0.3);
 }
-.pp-pill.show .pp-pill-eq i { animation: pp-eq 900ms ease-in-out infinite; }
-.pp-pill-eq i:nth-child(2) { animation-delay: 150ms; }
-.pp-pill-eq i:nth-child(3) { animation-delay: 300ms; }
-@keyframes pp-eq {
-  0%, 100% { transform: scaleY(0.28); }
-  50% { transform: scaleY(1); }
+.pp-pill-btn.primary svg { width: 14px; height: 14px; }
+.pp-pill-btn.primary:hover {
+  background: linear-gradient(180deg, var(--accent-hover), var(--accent));
+  color: var(--accent-ink);
 }
-body.reduced-motion .pp-pill.show .pp-pill-eq i { animation: none; transform: scaleY(0.62); }
+
 @media (prefers-reduced-transparency: reduce) {
   .pp-pill {
-    background: rgb(16, 17, 22);
+    background: rgb(14, 15, 20);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
