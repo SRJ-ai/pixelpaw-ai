@@ -213,6 +213,20 @@ const STRINGS = {
     en: "Right-click the pet and choose “Chat with pet…” to start a conversation.",
     te: "సంభాషణ మొదలుపెట్టడానికి పెంపుడుపై రైట్-క్లిక్ చేసి “Chat with pet…” ఎంచుకో.",
   },
+  "set.detected": { en: "Found on this machine", te: "ఈ మెషీన్‌లో దొరికినవి" },
+  "set.detectNone": {
+    en: "No coding agents found. Install one, or use the command below by hand.",
+    te: "కోడింగ్ ఏజెంట్లు ఏవీ దొరకలేదు. ఒకటి ఇన్‌స్టాల్ చెయ్యి, లేదా కింది కమాండ్‌ను చేతితో వాడు.",
+  },
+  "set.connect": { en: "Connect", te: "కలుపు" },
+  "set.disconnect": { en: "Disconnect", te: "తీసివేయి" },
+  "set.connected": { en: "Connected", te: "కలిపి ఉంది" },
+  "set.manualOnly": { en: "Set up by hand", te: "చేతితో సెటప్" },
+  "set.note.connectWrites": {
+    en: "Connecting edits that tool's own config file. A copy of the original is kept beside it, and disconnecting removes only what was added.",
+    te: "కలిపితే ఆ టూల్ కాన్ఫిగ్ ఫైల్ మారుతుంది. అసలు ఫైల్ కాపీ పక్కనే ఉంచుతాం; తీసివేస్తే మేము చేర్చినది మాత్రమే పోతుంది.",
+  },
+
   "set.note.agentIntro": {
     en: "The pet reacts when a coding agent (Claude Code, Codex, Cursor, a script) reports what it is doing. The quickest way is the bundled command, which finds your token for you and stays quiet when the pet is not running:",
     te: "కోడింగ్ ఏజెంట్ (Claude Code, Codex, Cursor, స్క్రిప్ట్) తాను ఏం చేస్తుందో చెప్పినప్పుడు పెంపుడు స్పందిస్తుంది. సులభమైన మార్గం ఈ కమాండ్ — ఇది మీ టోకెన్‌ను తానే కనుక్కుంటుంది, పెంపుడు నడవకపోతే మౌనంగా ఉంటుంది:",

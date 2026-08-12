@@ -814,6 +814,16 @@ select.set-input { cursor: pointer; }
   .set-media-btn { background: rgba(255, 255, 255, 0.05); }
 }
 
+/* Detected coding agents. The dot carries connected state, so the row reads at
+   a glance without needing to parse the button label. */
+.set-agents { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }
+.set-agent { display: flex; align-items: center; gap: var(--space-3); }
+.set-agent-name { flex: 1 1 auto; font-weight: 600; }
+.set-agent-manual { font-style: normal; font-size: var(--text-2xs); color: var(--text-muted); }
+.set-agent .set-chip { flex: 0 0 auto; }
+.set-agent .set-chip:disabled { opacity: 0.5; cursor: default; }
+.set-error { color: var(--danger); }
+
 /* Copyable snippet. Every code block in the agents panel exists to be taken,
    so the button is part of the block rather than a separate control. */
 .set-copyblock { position: relative; }

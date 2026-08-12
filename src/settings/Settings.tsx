@@ -506,6 +506,8 @@ export default function Settings() {
 
         <Section title={t("set.section.agents")}>
           <Toggle label={t("set.agentReactions")} checked={s.ai.agentReactions} onChange={(v) => patch((d) => (d.ai.agentReactions = v))} />
+          <AgentDetect exePath={exePath} />
+
           <p className="set-note">{t("set.note.agentIntro")}</p>
           <CopyBlock text={`${exePath} notify working --agent claude-code`} />
           <p className="set-note">{t("set.note.agentStatuses")}</p>
@@ -584,6 +586,91 @@ function claudeCodeHook(exe: string): string {
     },
     null,
     2
+  );
+}
+
+interface DetectedAgent {
+  id: string;
+  name: string;
+  found: boolean;
+  via: string;
+  auto: boolean;
+  config: string | null;
+}
+
+/**
+ * What is installed, and a one-click way to wire it up.
+ *
+ * Connecting rewrites somebody's editor config, so it never happens on its
+ * own: the list is read-only until a button is pressed, and the tools whose
+ * hook format we cannot write correctly say so rather than guessing.
+ */
+function AgentDetect({ exePath }: { exePath: string }) {
+  const [agents, setAgents] = useState<DetectedAgent[] | null>(null);
+  const [connected, setConnected] = useState<Record<string, boolean>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = () => {
+    invoke<DetectedAgent[]>("detect_agents")
+      .then((list) => {
+        setAgents(list);
+        for (const a of list.filter((x) => x.found && x.auto)) {
+          invoke<boolean>("agent_connected", { id: a.id })
+            .then((on) => setConnected((c) => ({ ...c, [a.id]: on })))
+            .catch(() => {});
+        }
+      })
+      .catch(() => setAgents([]));
+  };
+  useEffect(refresh, []);
+
+  const toggle = (a: DetectedAgent) => {
+    setBusy(a.id);
+    setError(null);
+    const cmd = connected[a.id] ? "disconnect_agent" : "connect_agent";
+    invoke<string>(cmd, { id: a.id })
+      .then(() => setConnected((c) => ({ ...c, [a.id]: !c[a.id] })))
+      .catch((e) => setError(String(e)))
+      .finally(() => setBusy(null));
+  };
+
+  if (!agents) return null;
+  const found = agents.filter((a) => a.found);
+
+  return (
+    <>
+      <p className="set-note">{t("set.detected")}</p>
+      {found.length === 0 ? (
+        <p className="set-note">{t("set.detectNone")}</p>
+      ) : (
+        <div className="set-agents">
+          {found.map((a) => (
+            <div key={a.id} className="set-agent">
+              <span className={"set-dot " + (connected[a.id] ? "on" : "off")} />
+              <span className="set-agent-name">{a.name}</span>
+              {a.auto ? (
+                <button
+                  type="button"
+                  className={"set-chip" + (connected[a.id] ? " on" : "")}
+                  disabled={busy === a.id}
+                  onClick={() => toggle(a)}
+                >
+                  {connected[a.id] ? t("set.disconnect") : t("set.connect")}
+                </button>
+              ) : (
+                <em className="set-agent-manual">{t("set.manualOnly")}</em>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {found.some((a) => a.auto) && <p className="set-note">{t("set.note.connectWrites")}</p>}
+      {error && <p className="set-note set-error">{error}</p>}
+      <p className="set-note" hidden>
+        {exePath}
+      </p>
+    </>
   );
 }
 

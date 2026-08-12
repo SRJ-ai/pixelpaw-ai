@@ -16,6 +16,7 @@
 mod agent;
 mod ai;
 mod cursor;
+mod detect;
 mod input;
 mod media;
 mod menu;
@@ -52,6 +53,10 @@ pub fn run() {
             ai::ai_set_key,
             ai::ai_has_key,
             agent::agent_info,
+            detect::detect_agents,
+            detect::connect_agent,
+            detect::disconnect_agent,
+            detect::agent_connected,
             menu::open_pet_menu,
             menu::open_settings,
             menu::quit_app,
