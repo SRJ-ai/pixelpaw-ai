@@ -85,3 +85,23 @@ describe("t", () => {
     }
   });
 });
+
+describe("formatCountdown", () => {
+  it("counts down in mm:ss", async () => {
+    const { formatCountdown } = await import("@/pet/render/PetOverlays");
+    expect(formatCountdown(25 * 60_000)).toBe("25:00");
+    expect(formatCountdown(90_000)).toBe("1:30");
+    expect(formatCountdown(9_000)).toBe("0:09");
+  });
+
+  it("floors, so the final second is shown rather than skipped", async () => {
+    const { formatCountdown } = await import("@/pet/render/PetOverlays");
+    expect(formatCountdown(1_999)).toBe("0:01");
+    expect(formatCountdown(999)).toBe("0:00");
+  });
+
+  it("never shows a negative clock when the deadline has passed", async () => {
+    const { formatCountdown } = await import("@/pet/render/PetOverlays");
+    expect(formatCountdown(-5_000)).toBe("0:00");
+  });
+});

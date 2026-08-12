@@ -28,6 +28,8 @@ export interface GeneralSettings {
   opacity: number; // 0.3..1
   reducedMotion: boolean;
   cosmicDecor: boolean; // ambient stars + black hole behind the pet
+  /** A note pinned above the pet, kept in sight until cleared. */
+  pinnedNote: string;
   /** Language of the app's own chrome — separate from `ai.language`, which
    *  only decides what language the AI *replies* in. */
   uiLanguage: UiLang;
@@ -133,6 +135,7 @@ export const DEFAULT_SETTINGS: Settings = {
     opacity: 1,
     reducedMotion: false,
     cosmicDecor: true,
+    pinnedNote: "",
     uiLanguage: "en",
     neverSleep: true,
   },

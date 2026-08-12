@@ -194,9 +194,19 @@ export default function Settings() {
           <Toggle label={t("set.alwaysOnTop")} checked={g.alwaysOnTop} onChange={(v) => patch((d) => (d.general.alwaysOnTop = v))} />
           <Slider label={t("set.size")} min={0.25} max={1.6} step={0.05} value={g.scale} onChange={(v) => patch((d) => (d.general.scale = v))} fmt={pct} />
           <Slider label={t("set.opacity")} min={0.3} max={1} step={0.05} value={g.opacity} onChange={(v) => patch((d) => (d.general.opacity = v))} fmt={pct} />
+          <Row label={t("set.pinnedNote")}>
+            <input
+              className="set-input"
+              value={g.pinnedNote}
+              maxLength={80}
+              placeholder={t("set.pinnedNotePlaceholder")}
+              onChange={(e) => patch((d) => (d.general.pinnedNote = e.target.value))}
+            />
+          </Row>
           <Toggle label={t("set.cosmicDecor")} checked={g.cosmicDecor} onChange={(v) => patch((d) => (d.general.cosmicDecor = v))} />
           <Toggle label={t("set.neverSleep")} checked={g.neverSleep} onChange={(v) => patch((d) => (d.general.neverSleep = v))} />
           <Toggle label={t("set.reducedMotion")} checked={g.reducedMotion} onChange={(v) => patch((d) => (d.general.reducedMotion = v))} />
+          <p className="set-note">{t("set.note.pinned")}</p>
         </Section>
 
         <Section title={t("set.section.interactions")}>

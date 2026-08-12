@@ -88,6 +88,8 @@ const CFG = {
 export interface EngineStatus {
   state: AnimState;
   needs: PetNeeds;
+  /** Live countdown, so the UI can float a timer beside the pet. */
+  pomo: { active: boolean; phase: "focus" | "break"; remainingMs: number };
 }
 
 export class PetEngine {
@@ -817,11 +819,17 @@ export class PetEngine {
     else this.startPomodoro(now);
   }
 
+  /** Force the next status through, so the timer appears the instant it starts. */
+  private flushStatus() {
+    this.lastStatusAt = 0;
+  }
+
   private startPomodoro(now: number) {
     this.pomo.active = true;
     this.pomo.phase = "focus";
     this.pomo.endsAt = now + this.settings.productivity.pomodoroFocusMin * 60000;
     this.focusMode = true;
+    this.flushStatus();
     this.sm.request("sit", now);
     this.say("pet.focusStart", 3000);
   }
@@ -829,6 +837,7 @@ export class PetEngine {
   private stopPomodoro() {
     this.pomo.active = false;
     this.focusMode = false;
+    this.flushStatus();
     this.onSay?.(t("pet.pomodoroStopped"), 1600);
   }
 
@@ -945,6 +954,14 @@ export class PetEngine {
   private emitStatus(now: number) {
     if (!this.onStatus || now - this.lastStatusAt < 400) return;
     this.lastStatusAt = now;
-    this.onStatus({ state: this.sm.current, needs: { ...this.needs } });
+    this.onStatus({
+      state: this.sm.current,
+      needs: { ...this.needs },
+      pomo: {
+        active: this.pomo.active,
+        phase: this.pomo.phase,
+        remainingMs: Math.max(0, this.pomo.endsAt - now),
+      },
+    });
   }
 }

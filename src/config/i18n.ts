@@ -60,6 +60,17 @@ const STRINGS = {
     te: "నేను ఇక్కడే ఉన్నా! రైట్-క్లిక్ చెయ్యి 🐾",
   },
   // Escalating irritation at repeated taps, worst last.
+  // Short on purpose: the timer chip is narrow and sits beside the pet.
+  "pet.timerFocus": { en: "FOCUS", te: "ఫోకస్" },
+  "pet.timerBreak": { en: "BREAK", te: "విరామం" },
+
+  "set.pinnedNote": { en: "Pinned note", te: "పిన్ చేసిన నోట్" },
+  "set.pinnedNotePlaceholder": { en: "Keep this in sight…", te: "ఇది కంటిముందు ఉంచు…" },
+  "set.note.pinned": {
+    en: "Stays above the pet until you clear it. Good for the one thing you keep forgetting.",
+    te: "మీరు తీసేసే వరకు పెంపుడు పైన ఉంటుంది. మర్చిపోతున్న ఒక్క విషయానికి బాగుంటుంది.",
+  },
+
   "pet.poke1": { en: "Ow! 🐾", te: "అబ్బా! 🐾" },
   "pet.poke2": { en: "Hey — that tickles!", te: "ఏయ్ — చక్కిలిగింతలు!" },
   "pet.poke3": { en: "Ouch, easy there…", te: "అయ్యో, మెల్లగా…" },

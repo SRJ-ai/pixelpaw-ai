@@ -4,11 +4,13 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
 import { MediaPill, type UiBox } from "./pet/render/MediaPill";
+import { PinnedNote, PomodoroTimer } from "./pet/render/PetOverlays";
 import { SpeechBubble } from "./pet/render/SpeechBubble";
 import { BreakBurst } from "./pet/render/BreakBurst";
 import { SamuraiEntrance } from "./pet/render/SamuraiEntrance";
 import { PetEngine } from "./pet/engine";
 import { bus } from "./events/eventBus";
+import { t } from "./config/i18n";
 import { loadSettings, onSettingsChanged, saveSettings, type Settings } from "./config/settings";
 import { characterById } from "./config/characters";
 
@@ -41,6 +43,7 @@ export default function App() {
   const [breaking, setBreaking] = useState(false);
   const [samurai, setSamurai] = useState(false);
   const [pillOpen, setPillOpen] = useState(false);
+  const [pomo, setPomo] = useState({ active: false, phase: "focus" as "focus" | "break", remainingMs: 0 });
   const pillTimer = useRef<number | undefined>(undefined);
   const sayTimer = useRef<number | undefined>(undefined);
   const burstTimer = useRef<number | undefined>(undefined);
@@ -54,7 +57,7 @@ export default function App() {
     applyGeneral(initial.general);
 
     const engine = new PetEngine(
-      undefined,
+      (status) => setPomo(status.pomo),
       (text, ms) => {
         setSay(text);
         window.clearTimeout(sayTimer.current);
@@ -183,7 +186,20 @@ export default function App() {
   const accessories = characterById(settings.characterId).accessories;
 
   return (
-    <div className={"pet-stage" + (pillOpen ? " pill-open" : "")}>
+    <div
+      className={
+        "pet-stage" +
+        (pillOpen ? " pill-open" : "") +
+        (settings.general.pinnedNote.trim() ? " pin-open" : "")
+      }
+    >
+      <PinnedNote text={settings.general.pinnedNote} />
+      <PomodoroTimer
+        active={pomo.active}
+        phase={pomo.phase}
+        remainingMs={pomo.remainingMs}
+        label={t(pomo.phase === "focus" ? "pet.timerFocus" : "pet.timerBreak")}
+      />
       <SpeechBubble text={say} />
       <MediaPill open={pillOpen} onBox={onPillBox} onHoverChange={keepPillOpen} onPress={extendPill} />
       <PixelCat ref={svgRef} appearance={settings.appearance} accessories={accessories} decor={settings.general.cosmicDecor} />

@@ -256,6 +256,79 @@ body {
 .crash-actions { display: flex; gap: var(--space-3); }
 .crash-actions .set-btn { margin-top: 0; }
 
+/* ------------------------------------------------ Pomodoro timer + pinned note
+   Both float over unknown wallpaper like the pill, so they bring their own
+   scrim rather than the window tokens. Display-only: the pet window is
+   click-through except over the silhouette and the single rect published to
+   Rust, which the pill owns. */
+.pp-timer {
+  position: absolute;
+  /* Beside the head rather than above it, so the pill and the bubble keep the
+     space over the cat to themselves. */
+  right: 4%;
+  bottom: min(calc(4% + 60% * var(--pet-scale, 1)), calc(100% - 44px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 4px 9px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.02)),
+    rgba(14, 15, 20, 0.86);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 6px 18px rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  transform: translateX(6px) scale(0.9);
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out), transform 220ms var(--ease-out);
+}
+.pp-timer.show { opacity: 1; transform: none; }
+.pp-timer-phase {
+  font: 700 8px/1 system-ui, "Segoe UI", sans-serif;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.62);
+}
+/* Tabular figures, or the clock jitters as the digits change. */
+.pp-timer-clock {
+  font: 700 15px/1.1 ui-monospace, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+.pp-timer.focus .pp-timer-clock { color: var(--accent-hover); }
+.pp-timer.break .pp-timer-clock { color: #7fe0a8; }
+
+/* A note you pinned. Sits at the very top so the bubble and pill stack under
+   it rather than shoving it around. */
+.pp-pin {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  max-width: 92%;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 244, 214, 0.97);
+  color: #4a3a1a;
+  border: 1px solid rgba(74, 58, 26, 0.18);
+  font: 600 11px/1.35 system-ui, "Segoe UI", sans-serif;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18), 0 8px 20px rgba(0, 0, 0, 0.24);
+  opacity: 0;
+  transform: translate(-50%, -4px);
+  pointer-events: none;
+  /* Long notes wrap to two lines and then stop, rather than covering the cat. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.pp-pin.show { opacity: 1; transform: translate(-50%, 0); }
+
 /* Speech bubble above the pet. */
 .pp-bubble {
   position: absolute;
