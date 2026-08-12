@@ -67,6 +67,17 @@ describe("t", () => {
     expect(t("chat.sayHello", { nope: "x" })).toContain("{name}");
   });
 
+  it("puts the name inside the sentence, not bolted on the front", () => {
+    // A named line has to be its own phrase per language, because Telugu does
+    // not put the vocative where English does.
+    for (const lang of UI_LANGUAGES) {
+      setUiLang(lang.id);
+      const named = t("pet.focusStartNamed", { name: "Vamsi" });
+      expect(named).toContain("Vamsi");
+      expect(named).not.toContain("{name}");
+    }
+  });
+
   it("offers a translation for every advertised language", () => {
     for (const lang of UI_LANGUAGES) {
       setUiLang(lang.id);

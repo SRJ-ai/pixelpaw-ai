@@ -1,6 +1,6 @@
 # PixelPaw AI 🐾
 
-An original, intelligent **desktop companion** — a tiny pixel-art pet that genuinely lives on your
+An original, intelligent **desktop companion** — a tiny hand-drawn pet that genuinely lives on your
 desktop, reacts to your mouse and activity, and (in later phases) grows an optional AI brain,
 productivity tools, and personality.
 

@@ -1,6 +1,6 @@
 # PixelPaw AI
 
-> A free, open-source pixel-art desktop pet for Windows 10 and 11. It lives on your
+> A free, open-source animated desktop pet for Windows 10 and 11. It lives on your
 > desktop as a transparent always-on-top window, reacts to your cursor and typing,
 > runs Pomodoro timers, sends water and break reminders, controls music playback,
 > and reacts when a coding agent finishes a task. An optional AI companion supports

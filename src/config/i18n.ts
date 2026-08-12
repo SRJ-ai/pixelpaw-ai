@@ -21,6 +21,25 @@ const STRINGS = {
   // ---------------------------------------------------------- pet speech
   "pet.break": { en: "Break time! Stretch a bit 🐾", te: "విరామం! కాసేపు ఒళ్ళు విరుచుకో 🐾" },
   "pet.water": { en: "Water break! Sip some water 💧", te: "నీళ్ళ విరామం! కాస్త నీళ్ళు తాగు 💧" },
+  // Named variants, used when the user has told the pet their name. Written as
+  // separate phrases rather than a prefix so each language can put the name
+  // where it actually belongs in the sentence.
+  "pet.breakNamed": {
+    en: "{name}, break time! Stretch a bit 🐾",
+    te: "{name}, విరామం! కాసేపు ఒళ్ళు విరుచుకో 🐾",
+  },
+  "pet.waterNamed": {
+    en: "{name}, sip some water 💧",
+    te: "{name}, కాస్త నీళ్ళు తాగు 💧",
+  },
+  "pet.focusStartNamed": {
+    en: "Focus time, {name} — let's go 🐾",
+    te: "ఫోకస్ టైమ్, {name} — పద! 🐾",
+  },
+  "pet.pomodoroDoneNamed": {
+    en: "Pomodoro complete, {name} — great work! 🎉",
+    te: "పొమొడోరో పూర్తి, {name} — భలే పని! 🎉",
+  },
   "pet.overheat": { en: "Whoa! Slow down! 🐾", te: "అబ్బా! కాస్త నెమ్మది! 🐾" },
   "pet.focusStart": { en: "Focus time — let's go 🐾", te: "ఫోకస్ టైమ్ — పద! 🐾" },
   "pet.pomodoroStopped": { en: "Pomodoro stopped", te: "పొమొడోరో ఆపేశా" },

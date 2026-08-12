@@ -40,6 +40,15 @@ const lerp = (a: number, b: number, f: number) => a + (b - a) * f;
  */
 const WALL_CLOCK_TICK_MS = 15000;
 
+/** Lines that read better with the user's name in them, and their variants. */
+type NamedLine = "pet.break" | "pet.water" | "pet.focusStart" | "pet.pomodoroDone";
+const NAMED = {
+  "pet.break": "pet.breakNamed",
+  "pet.water": "pet.waterNamed",
+  "pet.focusStart": "pet.focusStartNamed",
+  "pet.pomodoroDone": "pet.pomodoroDoneNamed",
+} as const;
+
 /** What the pet says as taps pile up — one line per tier, worst last. */
 const POKE_KEYS = ["pet.poke1", "pet.poke2", "pet.poke3", "pet.poke4"] as const;
 /** Leave the pet alone this long and its patience resets. */
@@ -249,6 +258,16 @@ export class PetEngine {
 
   getNeeds() {
     return this.needs;
+  }
+
+  /**
+   * Pick the named variant of a line when the user has told the pet their name.
+   * The name lives in `ai.userName` because that is where it was first
+   * collected, but it belongs to the pet, not to the AI.
+   */
+  private say(key: NamedLine, ms: number) {
+    const name = this.settings.ai.userName.trim();
+    this.onSay?.(name ? t(NAMED[key], { name }) : t(key), ms);
   }
 
   /** Apply user settings live (called on change from the settings window). */
@@ -703,7 +722,7 @@ export class PetEngine {
   private triggerBreak(now: number) {
     this.lastBreakAt = now;
     this.sm.request("stretch", now);
-    this.onSay?.(t("pet.break"), 3400);
+    this.say("pet.break", 3400);
     this.onBreak?.();
   }
 
@@ -753,7 +772,7 @@ export class PetEngine {
   private triggerWater(now: number) {
     this.lastWaterAt = now;
     this.sm.request("happy", now);
-    this.onSay?.(t("pet.water"), 3400);
+    this.say("pet.water", 3400);
   }
 
   // ---- Scheduled reminders (§34) ----
@@ -804,7 +823,7 @@ export class PetEngine {
     this.pomo.endsAt = now + this.settings.productivity.pomodoroFocusMin * 60000;
     this.focusMode = true;
     this.sm.request("sit", now);
-    this.onSay?.(t("pet.focusStart"), 3000);
+    this.say("pet.focusStart", 3000);
   }
 
   private stopPomodoro() {
@@ -825,7 +844,7 @@ export class PetEngine {
     } else {
       this.pomo.active = false;
       this.sm.request("happy", now);
-      this.onSay?.(t("pet.pomodoroDone"), 3600);
+      this.say("pet.pomodoroDone", 3600);
       this.grant(XP.pomodoroComplete, 10, "pomodoros");
     }
   }

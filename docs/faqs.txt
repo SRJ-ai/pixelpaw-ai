@@ -9,7 +9,7 @@ Source: https://github.com/SRJ-ai/pixelpaw-ai
 ## Getting it
 
 ### What is PixelPaw AI?
-A free, open-source desktop pet for Windows. An original pixel-art cat lives on your
+A free, open-source desktop pet for Windows. An original hand-drawn cat lives on your
 desktop in a transparent always-on-top window, reacts to your cursor and typing, runs
 Pomodoro timers, reminds you to drink water, controls your music, and can chat with
 you through an AI provider you choose.
