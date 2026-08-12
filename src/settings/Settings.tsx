@@ -47,7 +47,7 @@ export default function Settings() {
   const [keyInput, setKeyInput] = useState("");
   const [keySaved, setKeySaved] = useState<boolean | null>(null);
   const [memories, setMemories] = useState<MemoryEntry[]>(() => loadMemories());
-  const [agentInfo, setAgentInfo] = useState<{ port: number; token: string } | null>(null);
+  const [agentInfo, setAgentInfo] = useState<{ port: number; token: string; exe: string } | null>(null);
 
   const aiProvider = s.ai.provider;
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function Settings() {
   }, [aiProvider]);
 
   useEffect(() => {
-    invoke<{ port: number; token: string }>("agent_info")
+    invoke<{ port: number; token: string; exe: string }>("agent_info")
       .then(setAgentInfo)
       .catch(() => setAgentInfo(null));
   }, []);
@@ -69,6 +69,10 @@ export default function Settings() {
       return next;
     });
   }
+
+  // Quoted so a path with spaces (the default install location has one) can be
+  // pasted straight into a shell.
+  const exePath = agentInfo ? `"${agentInfo.exe}"` : "pixelpaw-ai";
 
   const i = s.interactions;
   const g = s.general;
@@ -502,19 +506,23 @@ export default function Settings() {
 
         <Section title={t("set.section.agents")}>
           <Toggle label={t("set.agentReactions")} checked={s.ai.agentReactions} onChange={(v) => patch((d) => (d.ai.agentReactions = v))} />
-          <p className="set-note">
-            The pet reacts when a coding agent (Claude Code, Codex, Cursor, a script…) reports what
-            it's doing. Point your agent's hooks at this local endpoint — it only accepts connections
-            from this machine:
-          </p>
+          <p className="set-note">{t("set.note.agentIntro")}</p>
+          <CopyBlock text={`${exePath} notify working --agent claude-code`} />
+          <p className="set-note">{t("set.note.agentStatuses")}</p>
+
+          <p className="set-note">{t("set.note.agentHook")}</p>
+          <CopyBlock text={claudeCodeHook(exePath)} />
+
+          <p className="set-note">{t("set.note.agentHttp")}</p>
           {agentInfo ? (
-            <pre className="set-code">{`POST http://127.0.0.1:${agentInfo.port}/agent/status
+            <CopyBlock
+              text={`POST http://127.0.0.1:${agentInfo.port}/agent/status
 X-PixelPaw-Token: ${agentInfo.token}
-{"agent":"claude-code","status":"working"}`}</pre>
+{"agent":"claude-code","status":"working"}`}
+            />
           ) : (
             <p className="set-note">{t("set.note.agentDown")}</p>
           )}
-          <p className="set-note">{t("set.note.agentStatuses")}</p>
         </Section>
         </>
       )}
@@ -559,6 +567,52 @@ X-PixelPaw-Token: ${agentInfo.token}
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+/**
+ * A Claude Code hook config that keeps the pet in step with a session: it
+ * perks up when you send a prompt and settles when the turn ends.
+ */
+function claudeCodeHook(exe: string): string {
+  const cmd = (status: string) => `${exe} notify ${status} --agent claude-code`;
+  return JSON.stringify(
+    {
+      hooks: {
+        UserPromptSubmit: [{ hooks: [{ type: "command", command: cmd("working") }] }],
+        Notification: [{ hooks: [{ type: "command", command: cmd("waiting") }] }],
+        Stop: [{ hooks: [{ type: "command", command: cmd("success") }] }],
+      },
+    },
+    null,
+    2
+  );
+}
+
+/** A code block with a copy button, since every one of these is meant to be taken. */
+function CopyBlock({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const id = window.setTimeout(() => setCopied(false), 1600);
+    return () => window.clearTimeout(id);
+  }, [copied]);
+  return (
+    <div className="set-copyblock">
+      <pre className="set-code">{text}</pre>
+      <button
+        type="button"
+        className="set-copy"
+        onClick={() => {
+          navigator.clipboard.writeText(text).then(
+            () => setCopied(true),
+            () => setCopied(false)
+          );
+        }}
+      >
+        {copied ? t("set.copied") : t("set.copy")}
+      </button>
+    </div>
+  );
+}
 
 function newId(): string {
   return Math.random().toString(36).slice(2, 10);

@@ -213,6 +213,21 @@ const STRINGS = {
     en: "Right-click the pet and choose “Chat with pet…” to start a conversation.",
     te: "సంభాషణ మొదలుపెట్టడానికి పెంపుడుపై రైట్-క్లిక్ చేసి “Chat with pet…” ఎంచుకో.",
   },
+  "set.note.agentIntro": {
+    en: "The pet reacts when a coding agent (Claude Code, Codex, Cursor, a script) reports what it is doing. The quickest way is the bundled command, which finds your token for you and stays quiet when the pet is not running:",
+    te: "కోడింగ్ ఏజెంట్ (Claude Code, Codex, Cursor, స్క్రిప్ట్) తాను ఏం చేస్తుందో చెప్పినప్పుడు పెంపుడు స్పందిస్తుంది. సులభమైన మార్గం ఈ కమాండ్ — ఇది మీ టోకెన్‌ను తానే కనుక్కుంటుంది, పెంపుడు నడవకపోతే మౌనంగా ఉంటుంది:",
+  },
+  "set.note.agentHook": {
+    en: "Drop this into your Claude Code settings.json to have the pet follow every session automatically.",
+    te: "ప్రతి సెషన్‌ను పెంపుడు వాటంతట అదే గమనించాలంటే, దీన్ని మీ Claude Code settings.json లో పెట్టు.",
+  },
+  "set.note.agentHttp": {
+    en: "Prefer to call it directly? The same loopback endpoint is still there, and it only accepts connections from this machine.",
+    te: "నేరుగా పిలవాలనుకుంటే? అదే లూప్‌బ్యాక్ ఎండ్‌పాయింట్ ఉంది, ఇది ఈ మెషీన్ నుండి మాత్రమే కనెక్షన్లు స్వీకరిస్తుంది.",
+  },
+  "set.copy": { en: "Copy", te: "కాపీ" },
+  "set.copied": { en: "Copied", te: "కాపీ అయ్యింది" },
+
   "set.note.agentDown": {
     en: "Endpoint unavailable (port in use).",
     te: "ఎండ్‌పాయింట్ అందుబాటులో లేదు (పోర్ట్ వాడుకలో ఉంది).",

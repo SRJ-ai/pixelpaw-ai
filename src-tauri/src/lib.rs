@@ -19,12 +19,20 @@ mod cursor;
 mod input;
 mod media;
 mod menu;
+mod notify;
 mod tray;
 mod window;
 
 use tauri::{Emitter, Listener, Manager};
 
 pub fn run() {
+    // `notify` and `--help` are handled before Tauri starts, so calling the exe
+    // from a build script talks to the running pet instead of launching a
+    // second copy of the app.
+    if let Some(code) = notify::handle_cli() {
+        std::process::exit(code);
+    }
+
     tauri::Builder::default()
         // Must be registered first. Without it, every click of the desktop
         // shortcut starts another process — another cat, another tray icon —

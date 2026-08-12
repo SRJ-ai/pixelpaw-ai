@@ -78,7 +78,12 @@ pub fn token(app: &AppHandle) -> String {
 
 #[tauri::command]
 pub fn agent_info(app: AppHandle) -> serde_json::Value {
-    serde_json::json!({ "port": PORT, "token": token(&app) })
+    // The exe path travels with this so Settings can show a copy-paste command
+    // rather than asking the user to go and find where they installed the app.
+    let exe = std::env::current_exe()
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|_| "pixelpaw-ai".into());
+    serde_json::json!({ "port": PORT, "token": token(&app), "exe": exe })
 }
 
 pub fn spawn(app: AppHandle) {

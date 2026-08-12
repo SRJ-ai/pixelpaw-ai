@@ -814,6 +814,27 @@ select.set-input { cursor: pointer; }
   .set-media-btn { background: rgba(255, 255, 255, 0.05); }
 }
 
+/* Copyable snippet. Every code block in the agents panel exists to be taken,
+   so the button is part of the block rather than a separate control. */
+.set-copyblock { position: relative; }
+.set-copyblock .set-code { margin: 0; padding-right: 64px; }
+.set-copy {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--text-2xs);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out),
+    background var(--dur) var(--ease-out);
+}
+.set-copy:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+
 .set-mem-cat {
   flex: 0 0 auto;
   font-size: 10px;
