@@ -244,8 +244,42 @@ guard against shipping a release nobody can install.
 | 11 | Customization (characters, colours, sizing) | ✅ |
 | 12 | Progression (XP/bond/achievements) ✅ · mini-games ✅ · pet room | ◐ |
 | 13 | OG Samurai character + cinematic entrance ✅ · UI Telugu i18n ✅ | ✅ |
-| 14 | Tests (98) ✅ · perf/security hardening | ◐ |
-| 15 | Installer (NSIS) ✅ · auto-update | ◐ |
+| 14 | Tests (135) ✅ · perf/security hardening | ◐ |
+| 15 | Installer (NSIS) ✅ · auto-update ✅ | ✅ |
 | 16 | Sound ✅ · paper-scroll announcements ✅ · dog + panda species ✅ | ✅ |
+| 17 | Multi-monitor + per-monitor DPI ✅ · Authenticode signing | ◐ |
 
 Legend: ✅ done · ◐ partly done · ⏳ not started
+
+---
+
+## Licence
+
+[Apache-2.0](LICENSE). Use it, fork it, ship it — including commercially.
+
+Two things the licence does that MIT would not, and both are deliberate. It grants
+patent rights explicitly, so nobody contributing can later assert a patent against
+users. And section 6 grants **no trademark rights**: the name "PixelPaw AI" and the
+artwork can't be used to imply that a fork is endorsed by this project. Fork the
+code freely; give your fork its own name.
+
+See [NOTICE](NOTICE) for attribution and the originality statement.
+
+## Code signing
+
+The installer carries no Authenticode certificate yet, so Windows SmartScreen warns
+about an unknown publisher on a first install. This is separate from update signing,
+which *is* in place — see [Releasing](#releasing).
+
+The routes, priced as of August 2026:
+
+| Route | Cost | Catch |
+|---|---|---|
+| [SignPath Foundation](https://signpath.org/) | Free | Open-source projects only; needs an OSI licence (now satisfied) and an existing release history (also satisfied) |
+| [Certum Open Source](https://shop.certum.eu/code-signing.html) | ~€69 first year, ~€29/yr after | Hardware token posted to you; individual identity check |
+| [Azure Artifact Signing](https://azure.microsoft.com/en-gb/pricing/details/trusted-signing/) | $9.99/mo | Individual developers restricted to the USA and Canada |
+
+Once a certificate exists, Tauri signs during `tauri build` — add a `bundle.windows`
+block with `certificateThumbprint`, `digestAlgorithm: "sha256"` and a `timestampUrl`,
+or `signCommand` for a cloud/HSM signer such as SignPath. Timestamping matters:
+without it, every signature stops validating the day the certificate expires.

@@ -2,6 +2,7 @@
 name = "pixelpaw-ai"
 version = "0.2.5"
 description = "PixelPaw AI - an original intelligent desktop companion"
+license = "Apache-2.0"
 authors = ["PixelPaw"]
 edition = "2021"
 rust-version = "1.77"

@@ -4,6 +4,7 @@
   "version": "0.2.5",
   "type": "module",
   "description": "PixelPaw AI - an original intelligent desktop companion.",
+  "license": "Apache-2.0",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

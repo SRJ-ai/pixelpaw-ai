@@ -8,7 +8,7 @@
 > Ollama models.
 
 Current version: 0.2.5 (released 13 August 2026)
-Licence: open source, free, no account required
+Licence: Apache-2.0 (free and open source, no account required)
 Platform: Windows 10 and Windows 11, x64
 Download size: 1.78 MB (NSIS installer, unsigned)
 Runtime memory: roughly 25 MB idle
