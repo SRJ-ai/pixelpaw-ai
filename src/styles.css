@@ -340,7 +340,13 @@ body {
   bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 16px), calc(100% - 30px));
   left: 50%;
   transform: translate(-50%, 6px) scale(0.92);
-  max-width: 90%;
+  /* Absolutely positioned boxes shrink-wrap, so without max-content the bubble
+     wrapped at about half the width it was allowed. Grow to the text, then cap.
+     border-box matters here: with the default content-box the padding lands
+     outside the cap and the bubble still overhangs the window. */
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 92%;
   padding: 6px 11px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.98);
@@ -350,7 +356,17 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16), 0 10px 24px rgba(0, 0, 0, 0.26);
   opacity: 0;
   pointer-events: none;
-  white-space: nowrap;
+  /* Wraps rather than running off both edges. It used to be `nowrap`, which was
+     fine while every line was short, but a session label like
+     "claude-code · pixelpaw-ai done" is wider than the whole window and was
+     simply clipped at both ends. Three lines is the ceiling; past that the text
+     would cover the cat it belongs to. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   text-align: center;
   transition: opacity 0.18s ease, transform 0.18s ease, bottom 0.24s ease;
 }
