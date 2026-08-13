@@ -735,26 +735,33 @@ export class PetEngine {
     const who = agent || "agent";
     switch (status) {
       case "working":
-      case "thinking":
         this.agentBusy = true;
         this.sm.request("curious", now);
         this.onSay?.(t("pet.agentWorking", { who }), 2200);
         break;
-      case "waiting":
+      case "thinking":
+        this.agentBusy = true;
         this.sm.request("curious", now);
+        this.onSay?.(t("pet.agentThinking", { who }), 2200);
+        break;
+      case "waiting":
+        // Blocked on the user: say so rather than staying quiet, which is the
+        // whole point of glancing at the pet instead of the terminal.
+        this.sm.request("curious", now);
+        this.onSay?.(t("pet.agentWaiting", { who }), 2800);
         break;
       case "success":
         this.agentBusy = false;
         this.sm.request("happy", now);
         this.needs.happiness = clamp(this.needs.happiness + 0.05, 0, 1);
-        this.onSay?.(t("pet.agentDone"), 2600);
+        this.onSay?.(t("pet.agentDone", { who }), 3400);
         this.onBreak?.();
         this.grant(XP.agentSuccess, 5, "agentSuccesses");
         break;
       case "error":
         this.agentBusy = false;
         this.sm.request("surprised", now);
-        this.onSay?.(t("pet.agentError"), 3000);
+        this.onSay?.(t("pet.agentError", { who }), 3000);
         break;
       case "cancelled":
       case "idle":

@@ -45,7 +45,9 @@ Statuses
   idle        nothing in progress
 
 Options
-  --agent <name>   who is reporting (default: agent)
+  --agent <name>   who is reporting, e.g. claude-code
+  --label <name>   which project; defaults to the current folder's name, so
+                   several sessions at once stay tellable apart
 
 Exits 0 when the pet is not running, so it is safe in a build script.
 ";
@@ -151,15 +153,41 @@ pub fn handle_cli() -> Option<i32> {
         return Some(2);
     };
 
-    let mut agent = "agent".to_string();
+    let mut agent = String::new();
+    let mut label = String::new();
     let mut rest = args.iter().skip(2);
     while let Some(flag) = rest.next() {
-        if flag == "--agent" {
-            if let Some(name) = rest.next() {
-                agent = name.clone();
+        match flag.as_str() {
+            "--agent" => {
+                if let Some(name) = rest.next() {
+                    agent = name.clone();
+                }
             }
+            "--label" => {
+                if let Some(name) = rest.next() {
+                    label = name.clone();
+                }
+            }
+            _ => {}
         }
     }
+
+    // A hook runs with the project directory as its working directory, so the
+    // folder name is a free, accurate way to tell one session from another.
+    // With several agents running at once, "done" is useless without it.
+    if label.is_empty() {
+        label = std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()))
+            .unwrap_or_default();
+    }
+
+    let agent = match (agent.is_empty(), label.is_empty()) {
+        (true, true) => "agent".to_string(),
+        (true, false) => label,
+        (false, true) => agent,
+        (false, false) => format!("{agent} · {label}"),
+    };
 
     let Some(token) = read_token() else {
         // No token means the app has never run on this machine. Not an error

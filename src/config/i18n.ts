@@ -49,11 +49,18 @@ const STRINGS = {
     te: "పొమొడోరో పూర్తి — భలే పని! 🎉",
   },
   "pet.agentWorking": { en: "{who} is working…", te: "{who} పని చేస్తోంది…" },
-  "pet.agentDone": { en: "Done! 🎉", te: "అయిపోయింది! 🎉" },
+  "pet.agentThinking": { en: "{who} is thinking…", te: "{who} ఆలోచిస్తోంది…" },
+  // Naming the session matters once more than one is running: "done" on its own
+  // does not say which of them finished.
+  "pet.agentDone": {
+    en: "{who} done — waiting for you 🎉",
+    te: "{who} అయిపోయింది — మీ కోసం ఎదురుచూస్తోంది 🎉",
+  },
+  "pet.agentWaiting": { en: "{who} needs you 👀", te: "{who}కి మీరు కావాలి 👀" },
   "pet.levelUp": { en: "Level {n}! 🎉", te: "లెవెల్ {n}! 🎉" },
   "pet.agentError": {
-    en: "That one failed — let's retry 🐾",
-    te: "అది ఫెయిల్ అయ్యింది — మళ్ళీ ట్రై చేద్దాం 🐾",
+    en: "{who} failed — let's retry 🐾",
+    te: "{who} ఫెయిల్ అయ్యింది — మళ్ళీ ట్రై చేద్దాం 🐾",
   },
   "pet.alreadyHere": {
     en: "I'm already here! Right-click me 🐾",
