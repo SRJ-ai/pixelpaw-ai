@@ -13,6 +13,7 @@ import { Animator } from "./animation/animator";
 import { IdleDirector } from "./behaviors/idle";
 import { dateKey, isReminderDue } from "./behaviors/reminders";
 import { homePosition, isReachable } from "./behaviors/placement";
+import { recordAgentContact } from "./behaviors/agentLog";
 import { applyRenderState, bindParts, type PetParts } from "./render/parts";
 import { subscribeControl, subscribeCursor, type CursorSample } from "@/platform/cursorBridge";
 import {
@@ -99,6 +100,14 @@ export interface EngineStatus {
   needs: PetNeeds;
   /** Live countdown, so the UI can float a timer beside the pet. */
   pomo: { active: boolean; phase: "focus" | "break"; remainingMs: number };
+  /**
+   * Which agent is blocked on you, if any. Empty string means none.
+   *
+   * Unlike everything else the pet says, this is a *state* rather than an
+   * event: an agent waits until you deal with it, so the UI has to be able to
+   * keep showing it rather than being told once.
+   */
+  waitingOn: string;
 }
 
 /**
@@ -200,6 +209,14 @@ export class PetEngine {
   private focusMode = false;
   /** True while a coding agent reports it's working (keeps the pet attentive). */
   private agentBusy = false;
+  /**
+   * The agent currently blocked on the user, held until something clears it.
+   *
+   * A three-second bubble is no use for this: an agent asks for you exactly
+   * when you have looked away, so the one message you most need to catch is the
+   * one most likely to be missed.
+   */
+  private waitingOn = "";
   private progress: Progress = loadProgress();
   private progressDirty = false;
   private lastProgressSave = 0;
@@ -469,6 +486,7 @@ export class PetEngine {
   }
 
   private activateDrag(now: number) {
+    this.acknowledgeAttention();
     this.drag.active = true;
     this.drag.pending = false;
     this.drag.targetX = this.winX;
@@ -493,7 +511,20 @@ export class PetEngine {
     bus.emit("drag.end", {});
   }
 
+  /**
+   * The user has seen it. Touching the pet is acknowledgement enough — anyone
+   * reaching for the cat has noticed the cat, which is the whole job of the
+   * badge. Making them find a dismiss button would be a worse product than the
+   * three-second bubble this replaced.
+   */
+  private acknowledgeAttention() {
+    if (!this.waitingOn) return;
+    this.waitingOn = "";
+    this.flushStatus();
+  }
+
   private onPoke(now: number) {
+    this.acknowledgeAttention();
     // A tap on the cat: "ow!" — repeated taps daze it (Talking-Tom-like).
     if (now - this.poke.windowStart > 1600) {
       this.poke.windowStart = now;
@@ -838,6 +869,15 @@ export class PetEngine {
     if (!this.settings.ai.agentReactions) return;
     const now = performance.now();
     const who = agent || "agent";
+    // Anything the agent reports other than "waiting" means it is no longer
+    // blocked, so the badge comes down without the user having to dismiss it.
+    if (status !== "waiting" && this.waitingOn) {
+      this.waitingOn = "";
+      this.flushStatus();
+    }
+    // A record of when we last heard from an agent at all, so "are my hooks
+    // even firing?" is answerable in Settings instead of by guesswork.
+    recordAgentContact(who, status);
     switch (status) {
       // Picking up work is chatter — you were there when you asked for it.
       case "working":
@@ -855,6 +895,10 @@ export class PetEngine {
       case "waiting":
         this.sm.request("curious", now);
         this.announce(t("pet.agentWaiting", { who }), 2800, "nudge");
+        // The scroll says it once; the badge keeps saying it. Held until the
+        // agent reports something else or the user acknowledges the pet.
+        this.waitingOn = who;
+        this.flushStatus();
         break;
       case "success":
         this.agentBusy = false;
@@ -1116,6 +1160,7 @@ export class PetEngine {
         phase: this.pomo.phase,
         remainingMs: Math.max(0, this.pomo.endsAt - now),
       },
+      waitingOn: this.waitingOn,
     });
   }
 }

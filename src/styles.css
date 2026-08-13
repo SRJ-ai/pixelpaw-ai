@@ -333,6 +333,58 @@ body {
 .pp-timer.focus .pp-timer-clock { color: var(--accent-hover); }
 .pp-timer.break .pp-timer-clock { color: #7fe0a8; }
 
+/* ------------------------------------------------------- attention badge
+   An agent blocked on you. Unlike every other thing the pet says this has no
+   timer, because an agent asks for you exactly when you have looked away.
+   Amber rather than red: someone is waiting, nothing is broken. Sits low and
+   to the left so it clears the timer on the right and the bubble above. */
+.pp-attn {
+  position: absolute;
+  left: 4%;
+  bottom: min(calc(4% + 52% * var(--pet-scale, 1)), calc(100% - 34px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 60%;
+  padding: 4px 9px 4px 7px;
+  border-radius: var(--radius-pill);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02)),
+    rgba(28, 20, 6, 0.92);
+  color: #ffd98a;
+  font: 700 10px/1.2 system-ui, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 1px rgba(255, 190, 80, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.34),
+    0 10px 24px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateX(-6px) scale(0.92);
+  pointer-events: none;
+  transition: opacity 200ms var(--ease-out), transform 220ms var(--ease-out);
+}
+.pp-attn.show { opacity: 1; transform: none; }
+.pp-attn-who { overflow: hidden; text-overflow: ellipsis; }
+/* A slow pulse, not a flash: this can sit there for minutes, and anything
+   faster would be intolerable in the corner of the eye. */
+.pp-attn-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffb020;
+  box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.6);
+  animation: pp-attn-pulse 2.4s var(--ease-out) infinite;
+}
+@keyframes pp-attn-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 176, 32, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 7px rgba(255, 176, 32, 0); }
+}
+body.reduced-motion .pp-attn-dot { animation: none; }
+
 /* A note you pinned. Sits at the very top so the bubble and pill stack under
    it rather than shoving it around. */
 .pp-pin {

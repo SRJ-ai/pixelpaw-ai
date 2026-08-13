@@ -1,11 +1,11 @@
 {
-  "version": "0.2.3",
-  "notes": "- Unplugging a monitor could lose the pet for good. It remembers where you\n  left it, which is right until the screen it was left on stops existing.\n  Undock a laptop, unplug a second display or change a resolution, and the saved\n  position could put the window entirely outside the visible desktop — where,\n  being transparent, frameless and absent from the taskbar, it is invisible and\n  unclickable. Both routes back needed you to find it first, so there was no way\n  back at all. A remembered position is now checked against the screens that\n  actually exist, and a position nobody could reach is replaced rather than\n  honoured.\n\n- Docking sat on the input box on scaled displays. The offsets that put the\n  pet above a coding agent's message pane were fixed physical pixels, so on a\n  200% display they were half the intended clearance — worst on exactly the\n  machines where the text is larges",
-  "pub_date": "2026-08-13T14:52:50.762Z",
+  "version": "0.2.4",
+  "notes": "- \"Needs you\" now stays up. When a coding agent blocks on you, the pet used\n  to say so for under three seconds and then look exactly as it does when\n  nothing is happening. An agent asks for you precisely when you have looked\n  away, so the one message most worth catching was the one most likely to be\n  missed. A small amber badge now sits beside the pet until the agent moves on\n  or you touch the pet — no dismiss button, because anyone reaching for the cat\n  has already noticed the cat.\n\n- Diagnostics say when an agent last called. A hook that silently does\n  nothing — wrong path, moved executable, a tool that never runs them — looks\n  identical to an agent that simply has not finished anything yet. Settings →\n  More now shows who last reached the pet, what they said, and how long ago, so\n  \"is this working?\" has an answer.\n\n135 tests, up from 126.",
+  "pub_date": "2026-08-13T15:08:36.435Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVVsZmRheXFjQTA5bkk2YW15ZjNneWUrb0xTbEg2c0R4WmViL09BN1QyS3V6bFo3dnNvemJHZU9wNVpWaHpHSmZHa01QN0VwcWt6R3NrQ1dGU2lrelFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjMxNDAyCWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjNfeDY0LXNldHVwLmV4ZQpLZ0NYRGpHRFdRdkVyVi9mUU1LVzRkMmgzekU4NzY4dm5nUVVWbGJleGtUUzBWaU5VMDZDd2FZZ2d4WVB1cE1SNlZLQi9pWnFaR0pENlllZ2FPZUVEZz09Cg==",
-      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.3/PixelPaw.AI_0.2.3_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVVQU3VjYWhJcTNqcXVLQk0rQ3FkL0IzdS91VnFQY0pzeHdyT282RlZJWTBtVFh2cDV1dXRsVzFiMjhDU0pFelNLbU9OTTNjS1kya3JBS0NVLzIzbkE4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjMzNjg5CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjRfeDY0LXNldHVwLmV4ZQpDbm1RdllvWGFXcldTUTRwN1JvbUhqd2gxV0tnNi9ydjhQbVd5d3NzcW1BV3M1Vkgyb2VibTFBcGVtUEQwMjU0R0RNcTNHLytDMTk5YktuRmhpYTlDUT09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.4/PixelPaw.AI_0.2.4_x64-setup.exe"
     }
   }
 }

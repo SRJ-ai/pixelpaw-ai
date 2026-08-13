@@ -43,6 +43,27 @@ export function PomodoroTimer({
   );
 }
 
+/**
+ * "Your agent is waiting for you", and it stays waiting.
+ *
+ * The speech bubble and the scroll are both timed — they say their piece and
+ * go. That is right for everything else the pet says, and exactly wrong for
+ * this one: an agent blocks on you precisely when you have looked away, so a
+ * message that expires after three seconds is a message you will miss. This
+ * badge stays up until the agent moves on or you acknowledge it.
+ *
+ * Kept small and beside the pet rather than large and over it: the point is to
+ * be noticeable in peripheral vision, not to demand the screen.
+ */
+export function AttentionBadge({ who, active }: { who: string; active: boolean }) {
+  return (
+    <div className={"pp-attn" + (active ? " show" : "")} role="status" aria-hidden={!active}>
+      <span className="pp-attn-dot" aria-hidden="true" />
+      <span className="pp-attn-who">{who}</span>
+    </div>
+  );
+}
+
 export function PinnedNote({ text }: { text: string }) {
   const shown = text.trim();
   return (

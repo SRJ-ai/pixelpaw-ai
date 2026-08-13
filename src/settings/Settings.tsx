@@ -21,6 +21,7 @@ import { DEFAULT_APPEARANCE } from "@/types/pet";
 import { CHARACTERS, characterById } from "@/config/characters";
 import { setUiLang, t, UI_LANGUAGES, type StringKey, type UiLang } from "@/config/i18n";
 import { clearCrash, readCrash } from "@/ui/crashLog";
+import { describeAge, readAgentContact } from "@/pet/behaviors/agentLog";
 import { playCue, setSound } from "@/platform/sound";
 
 type TabId = "pet" | "behavior" | "focus" | "ai" | "more";
@@ -590,6 +591,7 @@ X-PixelPaw-Token: ${agentInfo.token}
         </Section>
 
         <Section title={t("set.section.diagnostics")}>
+          <LastAgent />
           <LastCrash />
         </Section>
 
@@ -623,6 +625,35 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
  * This is where the whole record goes, so "why is there a red exclamation
  * mark?" has an answer that survives the marker being dismissed.
  */
+/**
+ * When an agent last reached the pet.
+ *
+ * A hook that silently does nothing looks exactly like an agent that has not
+ * finished anything yet — the pet reacts for a few seconds either way and then
+ * goes back to normal. This is the difference between "it's broken" and "it
+ * hasn't happened yet", which is otherwise unanswerable.
+ */
+function LastAgent() {
+  const [contact, setContact] = useState(() => readAgentContact());
+  // Re-read on an interval: this window stays open while the user goes and
+  // triggers their agent to see whether anything lands.
+  useEffect(() => {
+    const id = window.setInterval(() => setContact(readAgentContact()), 2000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  if (!contact) return <p className="set-note">{t("set.agentNever")}</p>;
+  return (
+    <p className="set-note">
+      {t("set.agentLast", {
+        who: contact.who,
+        status: contact.status,
+        ago: describeAge(contact.at),
+      })}
+    </p>
+  );
+}
+
 function LastCrash() {
   const [crash, setCrash] = useState(() => readCrash());
   if (!crash) return <p className="set-note">{t("set.crashNone")}</p>;

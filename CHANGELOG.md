@@ -3,6 +3,26 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.4 — 13 August 2026
+
+### Added
+
+- **"Needs you" now stays up.** When a coding agent blocks on you, the pet used
+  to say so for under three seconds and then look exactly as it does when
+  nothing is happening. An agent asks for you precisely when you have looked
+  away, so the one message most worth catching was the one most likely to be
+  missed. A small amber badge now sits beside the pet until the agent moves on
+  or you touch the pet — no dismiss button, because anyone reaching for the cat
+  has already noticed the cat.
+
+- **Diagnostics say when an agent last called.** A hook that silently does
+  nothing — wrong path, moved executable, a tool that never runs them — looks
+  identical to an agent that simply has not finished anything yet. Settings →
+  More now shows who last reached the pet, what they said, and how long ago, so
+  "is this working?" has an answer.
+
+135 tests, up from 126.
+
 ## 0.2.3 — 13 August 2026
 
 ### Fixed

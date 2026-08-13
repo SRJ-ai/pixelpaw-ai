@@ -6,7 +6,7 @@ import { loadOnboarding, markSeen, planOnboarding } from "./pet/behaviors/onboar
 import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
 import { MediaPill, type UiBox } from "./pet/render/MediaPill";
-import { PinnedNote, PomodoroTimer } from "./pet/render/PetOverlays";
+import { AttentionBadge, PinnedNote, PomodoroTimer } from "./pet/render/PetOverlays";
 import { PaperScroll } from "./pet/render/PaperScroll";
 import { SpeechBubble } from "./pet/render/SpeechBubble";
 import { BreakBurst } from "./pet/render/BreakBurst";
@@ -52,6 +52,8 @@ export default function App() {
   const [samurai, setSamurai] = useState(false);
   const [pillOpen, setPillOpen] = useState(false);
   const [pomo, setPomo] = useState({ active: false, phase: "focus" as "focus" | "break", remainingMs: 0 });
+  /** Which agent is blocked on the user. Held until cleared, never on a timer. */
+  const [waitingOn, setWaitingOn] = useState("");
   const pillTimer = useRef<number | undefined>(undefined);
   const sayTimer = useRef<number | undefined>(undefined);
   const burstTimer = useRef<number | undefined>(undefined);
@@ -65,7 +67,10 @@ export default function App() {
     applyGeneral(initial.general);
 
     const engine = new PetEngine(
-      (status) => setPomo(status.pomo),
+      (status) => {
+        setPomo(status.pomo);
+        setWaitingOn(status.waitingOn);
+      },
       (text, ms, tone = "chat") => {
         setSay({ text, tone });
         window.clearTimeout(sayTimer.current);
@@ -257,6 +262,7 @@ export default function App() {
       }
     >
       <PinnedNote text={settings.general.pinnedNote} />
+      <AttentionBadge who={t("pet.needsYou", { who: waitingOn })} active={Boolean(waitingOn)} />
       <PomodoroTimer
         active={pomo.active}
         phase={pomo.phase}

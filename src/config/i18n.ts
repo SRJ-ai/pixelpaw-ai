@@ -266,6 +266,7 @@ const STRINGS = {
     en: "I found {agent}. I can react when it finishes — Settings → AI 🔌",
     te: "{agent} కనిపించింది. అది పూర్తయితే నేను స్పందిస్తా — Settings → AI 🔌",
   },
+  "pet.needsYou": { en: "{who} needs you", te: "{who} నీ కోసం ఆగింది" },
   "pet.dockedTo": { en: "Watching {app} 👀", te: "{app} చూస్తున్నా 👀" },
   "pet.updateReady": {
     en: "Version {v} is ready — right-click me to install ✨",
@@ -284,6 +285,14 @@ const STRINGS = {
   "set.sound": { en: "Sound", te: "శబ్దం" },
   "set.volume": { en: "Volume", te: "వాల్యూమ్" },
   "set.section.diagnostics": { en: "Diagnostics", te: "డయాగ్నస్టిక్స్" },
+  "set.agentNever": {
+    en: "No coding agent has reached the pet yet. If you've connected one, run a task — if nothing appears here afterwards, its hooks aren't firing.",
+    te: "ఇంకా ఏ కోడింగ్ ఏజెంట్ పెంపుడుని చేరలేదు. కలిపి ఉంటే ఒక పని చేయించు — తర్వాత ఇక్కడ ఏమీ రాకపోతే, దాని హుక్స్ పనిచేయట్లేదు.",
+  },
+  "set.agentLast": {
+    en: "Last heard from {who} — “{status}”, {ago}.",
+    te: "చివరిసారి {who} నుంచి — “{status}”, {ago}.",
+  },
   "set.crashWhat": {
     en: "A red “!” beside the pet means one of its windows stopped drawing. The last failure is kept here so it can be read after the fact.",
     te: "పెంపుడు పక్కన ఎర్ర “!” కనిపిస్తే ఆ విండో గీయడం ఆగిపోయిందని అర్థం. చివరి వైఫల్యం ఇక్కడ ఉంచుతాం, తర్వాత చదవడానికి.",
