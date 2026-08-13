@@ -1,11 +1,11 @@
 {
-  "version": "0.2.4",
-  "notes": "- \"Needs you\" now stays up. When a coding agent blocks on you, the pet used\n  to say so for under three seconds and then look exactly as it does when\n  nothing is happening. An agent asks for you precisely when you have looked\n  away, so the one message most worth catching was the one most likely to be\n  missed. A small amber badge now sits beside the pet until the agent moves on\n  or you touch the pet — no dismiss button, because anyone reaching for the cat\n  has already noticed the cat.\n\n- Diagnostics say when an agent last called. A hook that silently does\n  nothing — wrong path, moved executable, a tool that never runs them — looks\n  identical to an agent that simply has not finished anything yet. Settings →\n  More now shows who last reached the pet, what they said, and how long ago, so\n  \"is this working?\" has an answer.\n\n135 tests, up from 126.",
-  "pub_date": "2026-08-13T15:18:37.297Z",
+  "version": "0.2.5",
+  "notes": "- The \"needs you\" badge floated away from the pet. It was pinned to the top\n  of the pet's window, which sounds right and isn't: the cat only fills the\n  bottom 45% of that window at the default size, so the badge sat roughly 113\n  pixels clear of the animal. On a desktop that reads as a stray label\n  belonging to nothing rather than as the pet asking for you. It now sits just\n  above the head, where the eye already goes.\n\n  Beside the body was the obvious alternative and it does not work — that\n  leaves about 80 pixels of clear width, too narrow for a label worth reading.\n  Three things now want that strip above the head, so they queue: the badge\n  steps up when a bubble or scroll passes through, and higher again when the\n  media pill is out. The badge is the standing one, so the passing things go in\n  front.",
+  "pub_date": "2026-08-13T15:34:20.983Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVJkSzZmNE5ESE5nWmF4dkhEQTFFSE5PRnJQVHdrM1dEVUVGbzVnLzNlOFhHOUJFckYreE55czhBU0FGb0YwMzI2cHlUODV3MGRKMUpwRGZWNklGTUFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjM0MDY5CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjRfeDY0LXNldHVwLmV4ZQpJaXNLWk5nc0syeDY1T3Y0MlNrdzc0cklyV2J0RTl6ZUVFY1diREVxVTZHVzNqRjFKNUhYVXN2NkI3b3doVkJQS1IzTG84OFc4K3VVNURzL3c2ZExDZz09Cg==",
-      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.4/PixelPaw.AI_0.2.4_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVhaanFqT240UzNMSXAzNThrSlhWWTI2aHovNElsZzVkbDVaRms5a3JDbzMxb2VieUpzWnRxZjNoNnUwd1c1MDdhcmRtaDhnUzQvVUMzS2orQXAvR1F3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjM1MjA0CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjVfeDY0LXNldHVwLmV4ZQpsVHl1dmtiZzJsWEVSMkFodDNNRVNyKzRiQ054RnFtaDd4bXVIdms2Tk0xTWxxQVlpdFRwTzRZUEM1c0JFVlh2U0RBdDlmb0dtdytIYTNmc2ZFUldCZz09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.5/PixelPaw.AI_0.2.5_x64-setup.exe"
     }
   }
 }

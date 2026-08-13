@@ -258,7 +258,9 @@ export default function App() {
       className={
         "pet-stage" +
         (pillOpen ? " pill-open" : "") +
-        (waitingOn ? " attn-open" : "") +
+        // The badge stays put while a bubble or scroll passes through, so it
+        // has to know when to step aside.
+        (say ? " say-open" : "") +
         (settings.general.pinnedNote.trim() ? " pin-open" : "")
       }
     >

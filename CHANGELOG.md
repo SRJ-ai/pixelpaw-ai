@@ -3,6 +3,24 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.5 — 13 August 2026
+
+### Fixed
+
+- **The "needs you" badge floated away from the pet.** It was pinned to the top
+  of the pet's window, which sounds right and isn't: the cat only fills the
+  bottom 45% of that window at the default size, so the badge sat roughly 113
+  pixels clear of the animal. On a desktop that reads as a stray label
+  belonging to nothing rather than as the pet asking for you. It now sits just
+  above the head, where the eye already goes.
+
+  Beside the body was the obvious alternative and it does not work — that
+  leaves about 80 pixels of clear width, too narrow for a label worth reading.
+  Three things now want that strip above the head, so they queue: the badge
+  steps up when a bubble or scroll passes through, and higher again when the
+  media pill is out. The badge is the standing one, so the passing things go in
+  front.
+
 ## 0.2.4 — 13 August 2026
 
 ### Added

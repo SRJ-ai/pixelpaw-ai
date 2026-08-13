@@ -340,17 +340,21 @@ body {
    to the left so it clears the timer on the right and the bubble above. */
 .pp-attn {
   position: absolute;
-  /* Top-left, clear of everything. Anchoring it to the cat's own height put it
-     across the head at the default scale, and the space beside the body is
-     narrow enough that any useful label was ellipsed down to nonsense. Up here
-     there is room to read it. */
-  top: 4px;
-  left: 4px;
+  /* Just above the head, like everything else the pet says.
+     The stage is 300px but the cat only fills its bottom 45% at the default
+     scale, so a badge pinned to the top of the window floated ~113px clear of
+     the animal — on a real desktop that reads as a stray label belonging to
+     nothing, not as the pet asking for you. Beside the body is no good either:
+     that leaves about 80px of clear width, too narrow for any label worth
+     showing. So it goes where the eye already looks. */
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 14px), calc(100% - 32px));
+  left: 50%;
   display: flex;
   align-items: flex-start;
   gap: 6px;
   box-sizing: border-box;
-  max-width: 72%;
+  width: max-content;
+  max-width: 92%;
   padding: 5px 10px 5px 8px;
   border-radius: 10px;
   background:
@@ -364,11 +368,20 @@ body {
     0 3px 8px rgba(0, 0, 0, 0.34),
     0 10px 24px rgba(0, 0, 0, 0.4);
   opacity: 0;
-  transform: translateX(-6px) scale(0.92);
+  transform: translate(-50%, 6px) scale(0.92);
   pointer-events: none;
-  transition: opacity 200ms var(--ease-out), transform 220ms var(--ease-out);
+  transition: opacity 200ms var(--ease-out), transform 220ms var(--ease-out),
+    bottom 240ms var(--ease-out);
 }
-.pp-attn.show { opacity: 1; transform: none; }
+.pp-attn.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+/* The badge is the standing one and the bubble is passing through, so the
+   badge steps up out of its way rather than the two overlapping. */
+.pet-stage.say-open .pp-attn {
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 62px), calc(100% - 32px));
+}
+.pet-stage.pill-open .pp-attn {
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 96px), calc(100% - 32px));
+}
 /* Two lines, so "claude-code · which-project needs you" survives intact. One
    line of it ellipsed to "claude-code … ns…" named nothing at all, which
    defeats the point when several sessions are running. */
@@ -422,9 +435,6 @@ body.reduced-motion .pp-attn-dot { animation: none; }
   transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
 }
 .pp-pin.show { opacity: 1; transform: translate(-50%, 0); }
-/* Both live at the top of the stage. The badge is transient and urgent, the
-   note is standing and calm, so the note is the one that yields. */
-.pet-stage.attn-open .pp-pin { top: 42px; }
 
 /* Speech bubble above the pet. */
 .pp-bubble {
