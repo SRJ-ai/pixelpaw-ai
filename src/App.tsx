@@ -258,6 +258,7 @@ export default function App() {
       className={
         "pet-stage" +
         (pillOpen ? " pill-open" : "") +
+        (waitingOn ? " attn-open" : "") +
         (settings.general.pinnedNote.trim() ? " pin-open" : "")
       }
     >
