@@ -23,12 +23,19 @@ use crate::window::PET_LABEL;
 /// event; polling faster buys nothing and costs a wakeup.
 const POLL_MS: u64 = 400;
 
-/// Roughly how tall an agent's input pane is, in physical pixels. The pet sits
-/// above this so it never covers what you are typing.
-const INPUT_PANE_PX: i32 = 130;
+/// Roughly how tall an agent's input pane is, in *logical* pixels — the units a
+/// terminal actually lays out in. The pet sits above this so it never covers
+/// what you are typing.
+///
+/// Logical rather than physical because these are measurements of somebody
+/// else's UI, and that UI scales with the display. As fixed physical pixels 130
+/// meant 130 logical on a 100% screen and only 65 on a 200% one, which put the
+/// pet squarely over the input box on exactly the machines where text is
+/// largest.
+const INPUT_PANE_DIP: f64 = 130.0;
 
 /// Gap between the pet and the right edge of the agent's window.
-const EDGE_MARGIN_PX: i32 = 20;
+const EDGE_MARGIN_DIP: f64 = 20.0;
 
 #[derive(Clone, Serialize)]
 pub struct DockTarget {
@@ -105,8 +112,25 @@ pub fn recognise(exe: &str, title: &str) -> Option<String> {
 mod sys {
     use std::os::windows::ffi::OsStringExt;
 
-    /// The foreground window's executable path, title, and screen rectangle.
-    pub fn foreground() -> Option<(String, String, (i32, i32, i32, i32))> {
+    /// The DPI scale of the display a window is on, as a multiplier of 96 DPI.
+    ///
+    /// Per-window rather than system-wide: on a mixed setup the agent's terminal
+    /// can be on a 200% laptop panel while the pet's own monitor runs at 100%,
+    /// and it is the agent's window whose layout we are measuring against.
+    pub fn window_scale(hwnd: winapi::shared::windef::HWND) -> f64 {
+        extern "system" {
+            fn GetDpiForWindow(hwnd: winapi::shared::windef::HWND) -> u32;
+        }
+        let dpi = unsafe { GetDpiForWindow(hwnd) };
+        if dpi == 0 {
+            1.0 // Windows 8.1 or older, where there is nothing per-window to ask.
+        } else {
+            dpi as f64 / 96.0
+        }
+    }
+
+    /// The foreground window's executable path, title, screen rectangle and DPI scale.
+    pub fn foreground() -> Option<(String, String, (i32, i32, i32, i32), f64)> {
         use winapi::um::handleapi::CloseHandle;
         use winapi::um::processthreadsapi::OpenProcess;
         use winapi::um::winbase::QueryFullProcessImageNameW;
@@ -159,6 +183,7 @@ mod sys {
                 exe,
                 title,
                 (rect.left, rect.top, rect.right, rect.bottom),
+                window_scale(hwnd),
             ))
         }
     }
@@ -166,7 +191,7 @@ mod sys {
 
 #[cfg(not(windows))]
 mod sys {
-    pub fn foreground() -> Option<(String, String, (i32, i32, i32, i32))> {
+    pub fn foreground() -> Option<(String, String, (i32, i32, i32, i32), f64)> {
         None
     }
 }
@@ -174,10 +199,15 @@ mod sys {
 /// Where the pet should sit for a given agent window: hard against the right
 /// edge, above the input pane. Clamped so a maximised or oddly-shaped window
 /// cannot push the pet off its own screen.
-fn target_for(rect: (i32, i32, i32, i32), pet_w: i32, pet_h: i32) -> (i32, i32) {
+///
+/// `scale` is the DPI scale of the monitor that window is on, so the offsets
+/// mean the same thing on every display.
+fn target_for(rect: (i32, i32, i32, i32), pet_w: i32, pet_h: i32, scale: f64) -> (i32, i32) {
     let (left, top, right, bottom) = rect;
-    let x = (right - pet_w - EDGE_MARGIN_PX).max(left);
-    let y = (bottom - pet_h - INPUT_PANE_PX).max(top);
+    let margin = (EDGE_MARGIN_DIP * scale).round() as i32;
+    let pane = (INPUT_PANE_DIP * scale).round() as i32;
+    let x = (right - pet_w - margin).max(left);
+    let y = (bottom - pet_h - pane).max(top);
     (x, y)
 }
 
@@ -204,13 +234,13 @@ pub fn spawn(app: AppHandle) {
             };
             let Ok(size) = win.outer_size() else { continue };
 
-            let found = sys::foreground().and_then(|(exe, title, rect)| {
-                recognise(&exe, &title).map(|name| (name, rect))
+            let found = sys::foreground().and_then(|(exe, title, rect, scale)| {
+                recognise(&exe, &title).map(|name| (name, rect, scale))
             });
 
             match found {
-                Some((name, rect)) => {
-                    let (x, y) = target_for(rect, size.width as i32, size.height as i32);
+                Some((name, rect, scale)) => {
+                    let (x, y) = target_for(rect, size.width as i32, size.height as i32, scale);
                     // Sent whenever it changes rather than only on focus: the
                     // agent's window can be moved or resized without focus ever
                     // changing, and the pet should travel with it.
@@ -268,14 +298,36 @@ mod tests {
 
     #[test]
     fn the_pet_sits_inside_the_window_above_the_input() {
-        let (x, y) = target_for((100, 100, 1000, 800), 300, 300);
-        assert_eq!(x, 1000 - 300 - EDGE_MARGIN_PX);
-        assert_eq!(y, 800 - 300 - INPUT_PANE_PX);
+        let (x, y) = target_for((100, 100, 1000, 800), 300, 300, 1.0);
+        assert_eq!(x, 1000 - 300 - 20);
+        assert_eq!(y, 800 - 300 - 130);
     }
 
     #[test]
     fn a_window_smaller_than_the_pet_never_pushes_it_outside() {
-        let (x, y) = target_for((400, 400, 600, 600), 300, 300);
+        let (x, y) = target_for((400, 400, 600, 600), 300, 300, 1.0);
         assert_eq!((x, y), (400, 400), "clamped to the window's own corner");
+    }
+
+    #[test]
+    fn the_clearance_grows_with_the_display_scale() {
+        // The bug this guards: fixed physical offsets meant half the intended
+        // clearance at 200%, which put the pet over the input box on exactly
+        // the machines where the text is biggest.
+        let win = (0, 0, 2000, 1600);
+        let (x1, y1) = target_for(win, 300, 300, 1.0);
+        let (x2, y2) = target_for(win, 300, 300, 2.0);
+        assert_eq!(2000 - (x2 + 300), (2000 - (x1 + 300)) * 2);
+        assert_eq!(1600 - (y2 + 300), (1600 - (y1 + 300)) * 2);
+    }
+
+    #[test]
+    fn a_fractional_scale_still_lands_on_whole_pixels() {
+        // 125% and 150% are the common Windows settings, and neither divides
+        // evenly — the result still has to be an integer position.
+        for scale in [1.25, 1.5, 1.75] {
+            let (x, y) = target_for((0, 0, 2000, 1600), 300, 300, scale);
+            assert!(x > 0 && y > 0, "scale {scale} produced {x},{y}");
+        }
     }
 }

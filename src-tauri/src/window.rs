@@ -97,15 +97,21 @@ pub fn is_over_pet(rel_x: i32, rel_y: i32, w: i32, h: i32) -> bool {
 }
 
 /// Place the window near the bottom-right of the primary monitor.
+///
+/// The margins are logical pixels scaled to the monitor, not physical ones. A
+/// taskbar is about 48 logical pixels tall whatever the display is doing, so a
+/// fixed physical figure tucked the pet under the taskbar on a 200% screen and
+/// left it floating well above it on a 100% one.
 pub fn place_default(win: &WebviewWindow) {
     if let Ok(Some(monitor)) = win.primary_monitor() {
         let m_pos = monitor.position();
         let m_size = monitor.size();
+        let scale = monitor.scale_factor();
         let w_size = win
             .outer_size()
             .unwrap_or(PhysicalSize { width: 240, height: 240 });
-        let margin = 24i32;
-        let taskbar = 56i32;
+        let margin = (24.0 * scale).round() as i32;
+        let taskbar = (48.0 * scale).round() as i32;
         let x = m_pos.x + m_size.width as i32 - w_size.width as i32 - margin;
         let y = m_pos.y + m_size.height as i32 - w_size.height as i32 - margin - taskbar;
         let _ = win.set_position(PhysicalPosition::new(x, y));

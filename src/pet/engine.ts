@@ -1,4 +1,9 @@
-import { getCurrentWindow, currentMonitor } from "@tauri-apps/api/window";
+import {
+  getCurrentWindow,
+  currentMonitor,
+  availableMonitors,
+  primaryMonitor,
+} from "@tauri-apps/api/window";
 import { PhysicalPosition } from "@tauri-apps/api/dpi";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 
@@ -7,6 +12,7 @@ import { StateMachine } from "./animation/stateMachine";
 import { Animator } from "./animation/animator";
 import { IdleDirector } from "./behaviors/idle";
 import { dateKey, isReminderDue } from "./behaviors/reminders";
+import { homePosition, isReachable } from "./behaviors/placement";
 import { applyRenderState, bindParts, type PetParts } from "./render/parts";
 import { subscribeControl, subscribeCursor, type CursorSample } from "@/platform/cursorBridge";
 import {
@@ -235,8 +241,8 @@ export class PetEngine {
         () => this.resume()
       ))
     );
-    // Return to wherever the user last left it.
-    this.restorePos();
+    // Return to wherever the user last left it, if that place still exists.
+    await this.restorePos();
 
     this.running = true;
     this.lastFrame = performance.now();
@@ -531,20 +537,79 @@ export class PetEngine {
     }
   }
 
-  private restorePos() {
+  /**
+   * Go back to where the pet was left — but only if that place still exists.
+   *
+   * Undock a laptop or unplug a second screen and the saved position can point
+   * outside every connected monitor. The window is transparent, frameless and
+   * skipped by the taskbar, so an off-screen pet is invisible and unclickable,
+   * and both routes back (its own right-click menu, and a tray icon Windows
+   * hides in the overflow flyout) need you to find it first. So a position that
+   * is no longer reachable is discarded rather than honoured.
+   */
+  private async restorePos() {
+    let saved: { x: number; y: number } | null = null;
     try {
       const raw = localStorage.getItem("pixelpaw.pos.v1");
-      if (!raw) return;
-      const p = JSON.parse(raw) as { x: number; y: number };
-      if (typeof p.x === "number" && typeof p.y === "number") {
-        this.winX = p.x;
-        this.winY = p.y;
-        this.haveWin = true;
-        this.setWindow();
+      if (raw) {
+        const p = JSON.parse(raw) as { x: number; y: number };
+        if (Number.isFinite(p?.x) && Number.isFinite(p?.y)) saved = { x: p.x, y: p.y };
       }
     } catch {
-      /* ignore */
+      /* corrupt record — treated the same as none */
     }
+
+    const size = await this.appWindow.outerSize().catch(() => null);
+    const win = { w: size?.width ?? 300, h: size?.height ?? 300 };
+
+    const screens = await availableMonitors().catch(() => []);
+    const boxes = screens.map((m) => ({
+      x: m.position.x,
+      y: m.position.y,
+      w: m.size.width,
+      h: m.size.height,
+    }));
+
+    if (saved && (boxes.length === 0 || isReachable({ ...saved, ...win }, boxes))) {
+      // No monitor list means we cannot judge; honouring the saved position is
+      // the better guess than moving a pet the user placed deliberately.
+      this.winX = saved.x;
+      this.winY = saved.y;
+      this.haveWin = true;
+      this.setWindow();
+      return;
+    }
+    if (!saved) {
+      // First run: the native side already placed the window, but the engine
+      // does not know where. Until it does, `setWindow` is a no-op and anything
+      // that moves the pet — docking especially — silently fails, and would
+      // record a home position of 0,0 to jump back to later. The cursor stream
+      // fills this in on the first mouse move; reading it now means we are never
+      // relying on the user to wiggle the mouse first.
+      const pos = await this.appWindow.outerPosition().catch(() => null);
+      if (pos) {
+        this.winX = pos.x;
+        this.winY = pos.y;
+        this.haveWin = true;
+      }
+      return;
+    }
+
+    const primary = await primaryMonitor().catch(() => null);
+    const target = primary ?? screens[0];
+    if (!target) return;
+    const home = homePosition(
+      { x: target.position.x, y: target.position.y, w: target.size.width, h: target.size.height },
+      win,
+      target.scaleFactor
+    );
+    this.winX = home.x;
+    this.winY = home.y;
+    this.haveWin = true;
+    this.setWindow();
+    // Overwrite the stale record, so an unreachable position is not carried
+    // forward to be rejected again on every future launch.
+    this.savePos();
   }
 
   private detectPet(now: number) {
@@ -919,6 +984,9 @@ export class PetEngine {
    */
   private onDock(target: DockTarget) {
     if (this.drag.active || this.drag.pending || this.peek.active) return;
+    // Without a known position there is nothing to go home to, and saving 0,0
+    // as home would fling the pet into the top-left corner on undock.
+    if (!this.haveWin) return;
     if (!this.dock.app) {
       this.dock.savedX = this.winX;
       this.dock.savedY = this.winY;

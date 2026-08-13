@@ -3,6 +3,33 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.3 — 13 August 2026
+
+### Fixed
+
+- **Unplugging a monitor could lose the pet for good.** It remembers where you
+  left it, which is right until the screen it was left on stops existing.
+  Undock a laptop, unplug a second display or change a resolution, and the saved
+  position could put the window entirely outside the visible desktop — where,
+  being transparent, frameless and absent from the taskbar, it is invisible and
+  unclickable. Both routes back needed you to find it first, so there was no way
+  back at all. A remembered position is now checked against the screens that
+  actually exist, and a position nobody could reach is replaced rather than
+  honoured.
+
+- **Docking sat on the input box on scaled displays.** The offsets that put the
+  pet above a coding agent's message pane were fixed physical pixels, so on a
+  200% display they were half the intended clearance — worst on exactly the
+  machines where the text is largest. They are logical pixels now, scaled from
+  the DPI of the monitor that window is on, so a mixed-DPI setup gets it right
+  per screen rather than per system.
+
+- **Same fault in the pet's first-run position**, which used a fixed 56px
+  taskbar allowance: tucked under the taskbar at 200%, floating well above it
+  at 100%.
+
+126 tests, up from 108.
+
 ## 0.2.2 — 13 August 2026
 
 ### Added

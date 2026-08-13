@@ -1,6 +1,6 @@
 # PixelPaw AI — Frequently Asked Questions
 
-Last updated: 13 August 2026 (version 0.2.2)
+Last updated: 13 August 2026 (version 0.2.3)
 Home: https://srj-ai.github.io/pixelpaw-ai/
 Source: https://github.com/SRJ-ai/pixelpaw-ai
 
@@ -21,7 +21,7 @@ Nothing. It is free and open source, with no account, no sign-up and no paid tie
 Windows 10 and Windows 11, 64-bit. There is no macOS or Linux build yet.
 
 ### How big is it and how much memory does it use?
-The installer is 1.76 MB. It uses roughly 25 MB of memory while idling on your
+The installer is 1.78 MB. It uses roughly 25 MB of memory while idling on your
 desktop.
 
 ### Why does Windows SmartScreen warn me when I install it?

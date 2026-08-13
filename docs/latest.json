@@ -1,11 +1,11 @@
 {
-  "version": "0.2.2",
-  "notes": "- The pet introduces itself. A new install used to drop a cat on the desktop\n  and stop there: everything the app does sits behind a right-click nothing\n  announces, and the other route is the tray icon Windows hides in the overflow\n  flyout. On a first run the pet now says where the menu is, once, and never\n  again. If a coding agent is already installed it mentions that too.\n\n  Not a welcome dialog — a modal on first launch is something to dismiss before\n  you have any reason to care, and it teaches nothing about where things live\n  afterwards. Saying it *from the pet* puts the instruction on the thing the\n  instruction is about.\n\n- 108 tests, up from 98.",
-  "pub_date": "2026-08-13T12:44:34.376Z",
+  "version": "0.2.3",
+  "notes": "- Unplugging a monitor could lose the pet for good. It remembers where you\n  left it, which is right until the screen it was left on stops existing.\n  Undock a laptop, unplug a second display or change a resolution, and the saved\n  position could put the window entirely outside the visible desktop — where,\n  being transparent, frameless and absent from the taskbar, it is invisible and\n  unclickable. Both routes back needed you to find it first, so there was no way\n  back at all. A remembered position is now checked against the screens that\n  actually exist, and a position nobody could reach is replaced rather than\n  honoured.\n\n- Docking sat on the input box on scaled displays. The offsets that put the\n  pet above a coding agent's message pane were fixed physical pixels, so on a\n  200% display they were half the intended clearance — worst on exactly the\n  machines where the text is larges",
+  "pub_date": "2026-08-13T14:52:50.762Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVdBbHJCK2VVRmdsT1N6clh2N3BjRHhvK1cxSXJNaitYcjYrY2RrdmZUL25FQ2R4MlA2WmRmS3Z6RWVsT3FiOGt3WnV6dFFlR0Zva0RNNTJoaHFDSEFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjI1MDU1CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjJfeDY0LXNldHVwLmV4ZQpSRnFKZzc3VnU3aHpTVTc0R3ZiQ0NVVnE5OHdDRWcranpPcFFXOEFnMW1SaFFDYllacmlSRDBRYlljNy96dWxyRXlRcEpBVXZxenB0cXIzakRmSFVEQT09Cg==",
-      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.2/PixelPaw.AI_0.2.2_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVVsZmRheXFjQTA5bkk2YW15ZjNneWUrb0xTbEg2c0R4WmViL09BN1QyS3V6bFo3dnNvemJHZU9wNVpWaHpHSmZHa01QN0VwcWt6R3NrQ1dGU2lrelFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjMxNDAyCWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjNfeDY0LXNldHVwLmV4ZQpLZ0NYRGpHRFdRdkVyVi9mUU1LVzRkMmgzekU4NzY4dm5nUVVWbGJleGtUUzBWaU5VMDZDd2FZZ2d4WVB1cE1SNlZLQi9pWnFaR0pENlllZ2FPZUVEZz09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.3/PixelPaw.AI_0.2.3_x64-setup.exe"
     }
   }
 }
