@@ -258,6 +258,14 @@ const STRINGS = {
   "set.connect": { en: "Connect", te: "కలుపు" },
   "set.disconnect": { en: "Disconnect", te: "తీసివేయి" },
   "set.connected": { en: "Connected", te: "కలిపి ఉంది" },
+  "pet.welcome": {
+    en: "Hi, I'm {name}! Right-click me — everything lives in there 🐾",
+    te: "హాయ్, నేను {name}! నాపై రైట్-క్లిక్ చెయ్యి — అన్నీ అందులోనే ఉన్నాయ్ 🐾",
+  },
+  "pet.welcomeAgent": {
+    en: "I found {agent}. I can react when it finishes — Settings → AI 🔌",
+    te: "{agent} కనిపించింది. అది పూర్తయితే నేను స్పందిస్తా — Settings → AI 🔌",
+  },
   "pet.dockedTo": { en: "Watching {app} 👀", te: "{app} చూస్తున్నా 👀" },
   "pet.updateReady": {
     en: "Version {v} is ready — right-click me to install ✨",

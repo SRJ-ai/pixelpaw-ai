@@ -1,11 +1,11 @@
 {
-  "version": "0.2.1",
-  "notes": "- Updates. Every release before this one only reached people who happened to\n  revisit the download page. The app now checks shortly after launch, the pet\n  says so if there's a newer version, and the right-click menu changes from\n  *Check for updates* to *Install update…* when one is waiting.\n\n  The check, the download and the install all happen in Rust — the webview is\n  never involved, so no page script can start one. Builds are signed with a key\n  that never leaves the maintainer's machine, and the app refuses anything that\n  doesn't verify against the public half compiled into it. A compromised host\n  still could not push a binary.",
-  "pub_date": "2026-08-13T11:08:15.015Z",
+  "version": "0.2.2",
+  "notes": "- The pet introduces itself. A new install used to drop a cat on the desktop\n  and stop there: everything the app does sits behind a right-click nothing\n  announces, and the other route is the tray icon Windows hides in the overflow\n  flyout. On a first run the pet now says where the menu is, once, and never\n  again. If a coding agent is already installed it mentions that too.\n\n  Not a welcome dialog — a modal on first launch is something to dismiss before\n  you have any reason to care, and it teaches nothing about where things live\n  afterwards. Saying it *from the pet* puts the instruction on the thing the\n  instruction is about.\n\n- 108 tests, up from 98.",
+  "pub_date": "2026-08-13T12:44:34.376Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTWZCVjFWV21hQ0cyNWdCZ0I2YUpNbFZ1WlRPcXBBcHJYNCtsTERnbUEvVk9zVndQVjNOVUViSDZoTlBEdjV5NHltOXFvcEVaQmdVb3ZZM0JOY3piOUFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjE5MjY0CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjFfeDY0LXNldHVwLmV4ZQpSWUhYQ0d6TEZteHZHYzBuRXdGOXpKdEhKRzlQZnpYcTJMZ0Z6UXU5VnJleHVEN3ByR3FOT3NzRjVXU0E0YmphWjFXV1pKYi9JZ2gxMDJSMFNxV2JEUT09Cg==",
-      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.1/PixelPaw.AI_0.2.1_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVdBbHJCK2VVRmdsT1N6clh2N3BjRHhvK1cxSXJNaitYcjYrY2RrdmZUL25FQ2R4MlA2WmRmS3Z6RWVsT3FiOGt3WnV6dFFlR0Zva0RNNTJoaHFDSEFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjI1MDU1CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjJfeDY0LXNldHVwLmV4ZQpSRnFKZzc3VnU3aHpTVTc0R3ZiQ0NVVnE5OHdDRWcranpPcFFXOEFnMW1SaFFDYllacmlSRDBRYlljNy96dWxyRXlRcEpBVXZxenB0cXIzakRmSFVEQT09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.2/PixelPaw.AI_0.2.2_x64-setup.exe"
     }
   }
 }

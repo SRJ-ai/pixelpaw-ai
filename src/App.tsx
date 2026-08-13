@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { subscribeUpdate } from "./platform/inputBridge";
+import { loadOnboarding, markSeen, planOnboarding } from "./pet/behaviors/onboarding";
 import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
 import { MediaPill, type UiBox } from "./pet/render/MediaPill";
@@ -118,6 +119,39 @@ export default function App() {
     };
     window.addEventListener("contextmenu", onContextMenu);
     return () => window.removeEventListener("contextmenu", onContextMenu);
+  }, []);
+
+  /**
+   * The first run. Everything this app does is behind a right-click that
+   * nothing announces, and the tray icon Windows hides in the overflow flyout
+   * is the only other route — so the pet says it, once, and then never again.
+   */
+  useEffect(() => {
+    const timers: number[] = [];
+    const state = loadOnboarding();
+    if (state.intro && state.agent) return;
+
+    invoke<{ id: string; name: string; found: boolean }[]>("detect_agents")
+      .catch(() => [])
+      .then((agents) => {
+        const agent = (agents ?? []).find((a) => a.found);
+        for (const step of planOnboarding(state, Boolean(agent))) {
+          timers.push(
+            window.setTimeout(() => {
+              const text =
+                step.step === "intro"
+                  ? t("pet.welcome", { name: loadSettings().petName })
+                  : t("pet.welcomeAgent", { agent: agent?.name ?? "your agent" });
+              setSay({ text, tone: "notice" });
+              playCue("chirp");
+              markSeen(step.step);
+              window.clearTimeout(sayTimer.current);
+              sayTimer.current = window.setTimeout(() => setSay(null), step.hold);
+            }, step.at)
+          );
+        }
+      });
+    return () => timers.forEach((id) => window.clearTimeout(id));
   }, []);
 
   /**

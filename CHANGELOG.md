@@ -3,6 +3,23 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.2 — 13 August 2026
+
+### Added
+
+- **The pet introduces itself.** A new install used to drop a cat on the desktop
+  and stop there: everything the app does sits behind a right-click nothing
+  announces, and the other route is the tray icon Windows hides in the overflow
+  flyout. On a first run the pet now says where the menu is, once, and never
+  again. If a coding agent is already installed it mentions that too.
+
+  Not a welcome dialog — a modal on first launch is something to dismiss before
+  you have any reason to care, and it teaches nothing about where things live
+  afterwards. Saying it *from the pet* puts the instruction on the thing the
+  instruction is about.
+
+- 108 tests, up from 98.
+
 ## 0.2.1 — 13 August 2026
 
 ### Added
