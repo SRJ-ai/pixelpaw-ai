@@ -176,6 +176,41 @@ export const DEFAULT_SETTINGS: Settings = {
 
 const KEY = "pixelpaw.settings.v1";
 
+/**
+ * Fill a partial settings object out to a complete one.
+ *
+ * Every path that produces settings goes through here, including the
+ * cross-window broadcast. That matters more than it looks: the payload of
+ * `settings:changed` is whatever the *sending* window had, so a field it does
+ * not know about arrives `undefined` in the pet. Reading `.trim()` off one of
+ * those throws during render, which unmounts the pet and leaves an invisible
+ * always-on-top window behind.
+ */
+export function mergeSettings(p: Partial<Settings>, migrate = false): Settings {
+  const merged: Settings = {
+    version: SETTINGS_VERSION,
+    petName: p.petName ?? DEFAULT_SETTINGS.petName,
+    characterId: p.characterId ?? DEFAULT_SETTINGS.characterId,
+    appearance: { ...DEFAULT_SETTINGS.appearance, ...(p.appearance ?? {}) },
+    general: { ...DEFAULT_SETTINGS.general, ...(p.general ?? {}) },
+    interactions: { ...DEFAULT_SETTINGS.interactions, ...(p.interactions ?? {}) },
+    productivity: { ...DEFAULT_SETTINGS.productivity, ...(p.productivity ?? {}) },
+    reminders: Array.isArray(p.reminders) ? p.reminders : [],
+    tasks: Array.isArray(p.tasks) ? p.tasks : [],
+    ai: { ...DEFAULT_SETTINGS.ai, ...(p.ai ?? {}) },
+  };
+  // Settings saved before this revision keep their old size; adopt the new
+  // default once, leaving every other customization intact.
+  //
+  // Only on load. A live broadcast is not a stored document, and a payload that
+  // happens to omit `version` must not be read as "old" and silently reset the
+  // size the user is looking at.
+  if (migrate && (p.version ?? 1) < SETTINGS_VERSION) {
+    merged.general.scale = DEFAULT_SETTINGS.general.scale;
+  }
+  return merged;
+}
+
 /** Load settings, deep-merging over defaults so new fields always have a value. */
 export function loadSettings(): Settings {
   try {
@@ -184,24 +219,7 @@ export function loadSettings(): Settings {
       setUiLang(DEFAULT_SETTINGS.general.uiLanguage);
       return structuredClone(DEFAULT_SETTINGS);
     }
-    const p = JSON.parse(raw) as Partial<Settings>;
-    const merged: Settings = {
-      version: SETTINGS_VERSION,
-      petName: p.petName ?? DEFAULT_SETTINGS.petName,
-      characterId: p.characterId ?? DEFAULT_SETTINGS.characterId,
-      appearance: { ...DEFAULT_SETTINGS.appearance, ...(p.appearance ?? {}) },
-      general: { ...DEFAULT_SETTINGS.general, ...(p.general ?? {}) },
-      interactions: { ...DEFAULT_SETTINGS.interactions, ...(p.interactions ?? {}) },
-      productivity: { ...DEFAULT_SETTINGS.productivity, ...(p.productivity ?? {}) },
-      reminders: Array.isArray(p.reminders) ? p.reminders : [],
-      tasks: Array.isArray(p.tasks) ? p.tasks : [],
-      ai: { ...DEFAULT_SETTINGS.ai, ...(p.ai ?? {}) },
-    };
-    // Settings saved before this revision keep their old size; adopt the new
-    // default once, leaving every other customization intact.
-    if ((p.version ?? 1) < SETTINGS_VERSION) {
-      merged.general.scale = DEFAULT_SETTINGS.general.scale;
-    }
+    const merged = mergeSettings(JSON.parse(raw) as Partial<Settings>, true);
     // Every window loads settings on startup, so this is the one place that
     // reliably arms the translator before anything renders.
     setUiLang(merged.general.uiLanguage);
@@ -223,11 +241,14 @@ export async function saveSettings(s: Settings): Promise<void> {
 }
 
 export function onSettingsChanged(cb: (s: Settings) => void): Promise<UnlistenFn> {
-  return listen<Settings>("settings:changed", (e) => {
+  return listen<Partial<Settings>>("settings:changed", (e) => {
+    // Merge rather than trusting the payload: it was built by whichever window
+    // saved, which may not know about every field this one reads.
+    const next = mergeSettings(e.payload ?? {});
     // Apply the UI language before the callback so anything the listener
     // re-renders already reads the new one.
-    setUiLang(e.payload.general.uiLanguage);
-    cb(e.payload);
+    setUiLang(next.general.uiLanguage);
+    cb(next);
   });
 }
 

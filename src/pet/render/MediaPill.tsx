@@ -81,22 +81,36 @@ const BUTTONS: { action: MediaAction; icon: keyof typeof ICONS; title: string }[
 export function MediaPill({ open, onBox, onHoverChange, onPress }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Report the layout box (offset*, not getBoundingClientRect) so the slide-in
-  // transform doesn't make the hit region wobble while it animates.
+  /**
+   * Publish the pill's real on-screen box.
+   *
+   * This has to be `getBoundingClientRect`, not `offsetLeft`/`offsetWidth`.
+   * The pill is centred with `left: 50%` plus `translateX(-50%)`, and the
+   * offset properties report the *untransformed* layout box, so they drop the
+   * centering entirely: the published rectangle started at the window's centre
+   * and ran off the right edge, leaving most of the buttons outside the
+   * clickable region and apparently dead.
+   *
+   * The trade-off is that the box is measured mid-transition, so it is briefly
+   * the scaled-down version. That is harmless — the pill only accepts pointer
+   * events once it is shown — and the `transitionend` pass corrects it to the
+   * resting box.
+   */
   useEffect(() => {
     const el = ref.current;
     if (!el || !open) {
       onBox(null);
       return;
     }
-    const w = window.innerWidth || 1;
-    const h = window.innerHeight || 1;
-    onBox({
-      l: el.offsetLeft / w,
-      t: el.offsetTop / h,
-      r: (el.offsetLeft + el.offsetWidth) / w,
-      b: (el.offsetTop + el.offsetHeight) / h,
-    });
+    const publish = () => {
+      const w = window.innerWidth || 1;
+      const h = window.innerHeight || 1;
+      const r = el.getBoundingClientRect();
+      onBox({ l: r.left / w, t: r.top / h, r: r.right / w, b: r.bottom / h });
+    };
+    publish();
+    el.addEventListener("transitionend", publish);
+    return () => el.removeEventListener("transitionend", publish);
   }, [open, onBox]);
 
   const button = (b: (typeof BUTTONS)[number], variant: "ghost" | "primary") => (

@@ -56,3 +56,53 @@ describe("settings", () => {
     expect(overheatRateFrom(-3)).toBe(overheatRateFrom(0));
   });
 });
+
+describe("mergeSettings", () => {
+  it("fills a field the sending window never heard of", async () => {
+    const { mergeSettings, DEFAULT_SETTINGS } = await import("./settings");
+    // Exactly the broadcast that crashed the pet: a general block from an
+    // older build, with no pinnedNote in it.
+    const fromOlderWindow = {
+      general: { scale: 0.8, opacity: 1, alwaysOnTop: true },
+    } as never;
+    const merged = mergeSettings(fromOlderWindow);
+    expect(merged.general.pinnedNote).toBe("");
+    expect(typeof merged.general.pinnedNote).toBe("string");
+    // The field it did send still wins.
+    expect(merged.general.scale).toBe(0.8);
+    // And unrelated blocks are whole, not undefined.
+    expect(merged.ai).toEqual(DEFAULT_SETTINGS.ai);
+    expect(merged.productivity).toEqual(DEFAULT_SETTINGS.productivity);
+  });
+
+  it("survives an empty payload rather than throwing", async () => {
+    const { mergeSettings, DEFAULT_SETTINGS } = await import("./settings");
+    const merged = mergeSettings({});
+    expect(merged.general).toEqual(DEFAULT_SETTINGS.general);
+    expect(merged.reminders).toEqual([]);
+  });
+
+  it("every string field the pet renders is a string, never undefined", async () => {
+    const { mergeSettings } = await import("./settings");
+    const m = mergeSettings({} as never);
+    // These are the ones read with .trim() or passed to the DOM during render.
+    for (const v of [m.general.pinnedNote, m.petName, m.characterId, m.ai.userName]) {
+      expect(typeof v).toBe("string");
+    }
+  });
+});
+
+describe("the version migration", () => {
+  it("runs on load, where a stored document really can be old", async () => {
+    const { mergeSettings, DEFAULT_SETTINGS } = await import("./settings");
+    const old = { version: 1, general: { scale: 0.8 } } as never;
+    expect(mergeSettings(old, true).general.scale).toBe(DEFAULT_SETTINGS.general.scale);
+  });
+
+  it("does not run on a broadcast, so a live scale is never reset", async () => {
+    const { mergeSettings } = await import("./settings");
+    // A payload without `version` must not be mistaken for an old document.
+    const broadcast = { general: { scale: 0.8 } } as never;
+    expect(mergeSettings(broadcast).general.scale).toBe(0.8);
+  });
+});
