@@ -258,7 +258,39 @@ const STRINGS = {
   "set.connect": { en: "Connect", te: "కలుపు" },
   "set.disconnect": { en: "Disconnect", te: "తీసివేయి" },
   "set.connected": { en: "Connected", te: "కలిపి ఉంది" },
-  "set.manualOnly": { en: "Set up by hand", te: "చేతితో సెటప్" },
+  "pet.dockedTo": { en: "Watching {app} 👀", te: "{app} చూస్తున్నా 👀" },
+  "set.dockToAgent": { en: "Sit beside my coding agent", te: "నా కోడింగ్ ఏజెంట్ పక్కన కూర్చో" },
+  "set.note.dock": {
+    en: "When a Claude Code, Codex or editor window takes focus, the pet moves above its input box and goes back afterwards.",
+    te: "Claude Code, Codex లేదా ఎడిటర్ విండోకి ఫోకస్ వెళ్తే, పెంపుడు దాని ఇన్‌పుట్ బాక్స్ పైకి వెళ్లి, తర్వాత తిరిగి వస్తుంది.",
+  },
+  "set.sound": { en: "Sound", te: "శబ్దం" },
+  "set.volume": { en: "Volume", te: "వాల్యూమ్" },
+  "set.section.diagnostics": { en: "Diagnostics", te: "డయాగ్నస్టిక్స్" },
+  "set.crashWhat": {
+    en: "A red “!” beside the pet means one of its windows stopped drawing. The last failure is kept here so it can be read after the fact.",
+    te: "పెంపుడు పక్కన ఎర్ర “!” కనిపిస్తే ఆ విండో గీయడం ఆగిపోయిందని అర్థం. చివరి వైఫల్యం ఇక్కడ ఉంచుతాం, తర్వాత చదవడానికి.",
+  },
+  "set.crashNone": {
+    en: "Nothing has failed since this was last cleared.",
+    te: "చివరిసారి తుడిచాక ఏదీ విఫలం కాలేదు.",
+  },
+  "set.crashWhere": { en: "{where} window · {when}", te: "{where} విండో · {when}" },
+  "set.crashClear": { en: "Clear", te: "తుడిచివేయి" },
+  "set.showSteps": { en: "How", te: "ఎలా" },
+  "set.hideSteps": { en: "Close", te: "మూసివేయి" },
+  "set.stepPaste": {
+    en: "Paste this into {file}, in any project you want the pet to watch. It tells the agent to report in — no hooks, no config format to get wrong.",
+    te: "పెంపుడు గమనించాలనుకున్న ప్రాజెక్టులో {file} లో దీన్ని అతికించు. ఏజెంట్‌కు తన స్థితి చెప్పమని ఇది సూచిస్తుంది — హుక్స్ అక్కర్లేదు.",
+  },
+  "set.stepVerify": {
+    en: "Then check the pipe works. Run this in a terminal — the pet should react straight away.",
+    te: "తర్వాత ఇది పనిచేస్తుందో చూడు. టెర్మినల్‌లో దీన్ని రన్ చెయ్యి — పెంపుడు వెంటనే స్పందించాలి.",
+  },
+  "set.stepAlso": {
+    en: "Claude Code can do all of this from the Connect button instead. The rule below is the same thing written by hand.",
+    te: "Claude Code కోసం పైన ఉన్న Connect బటన్ ఇదే పని చేస్తుంది. కింది నియమం దాన్నే చేతితో రాసినది.",
+  },
   "set.note.connectWrites": {
     en: "Connecting edits that tool's own config file. A copy of the original is kept beside it, and disconnecting removes only what was added.",
     te: "కలిపితే ఆ టూల్ కాన్ఫిగ్ ఫైల్ మారుతుంది. అసలు ఫైల్ కాపీ పక్కనే ఉంచుతాం; తీసివేస్తే మేము చేర్చినది మాత్రమే పోతుంది.",

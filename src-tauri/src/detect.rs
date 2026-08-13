@@ -23,6 +23,14 @@ pub struct Detected {
     pub auto: bool,
     /// The config file we would touch, when we can write one.
     pub config: Option<String>,
+    /// The file this tool reads standing instructions from, relative to the
+    /// project. Every agent that can run a shell command can drive the pet if
+    /// it is *told* to, so this is the answer for the tools whose hook format
+    /// we will not guess at: paste a rule here instead.
+    pub rules: &'static str,
+    /// What to pass to `--agent`, so several tools running at once stay
+    /// tellable apart in the pet's speech bubble.
+    pub flag: &'static str,
 }
 
 struct Tool {
@@ -32,6 +40,7 @@ struct Tool {
     /// Home-relative directories whose presence means the tool is installed.
     dirs: &'static [&'static str],
     auto: bool,
+    rules: &'static str,
 }
 
 const TOOLS: &[Tool] = &[
@@ -42,18 +51,48 @@ const TOOLS: &[Tool] = &[
         dirs: &[".claude"],
         // Its hook schema is documented and stable, so we can write it.
         auto: true,
+        rules: "CLAUDE.md",
     },
-    Tool { id: "codex", name: "Codex CLI", bins: &["codex"], dirs: &[".codex"], auto: false },
-    Tool { id: "cursor", name: "Cursor", bins: &["cursor"], dirs: &[".cursor"], auto: false },
+    Tool {
+        id: "codex",
+        name: "Codex CLI",
+        bins: &["codex"],
+        dirs: &[".codex"],
+        auto: false,
+        rules: "AGENTS.md",
+    },
+    Tool {
+        id: "cursor",
+        name: "Cursor",
+        bins: &["cursor"],
+        dirs: &[".cursor"],
+        auto: false,
+        rules: ".cursor/rules/pixelpaw.mdc",
+    },
     Tool {
         id: "antigravity",
         name: "Antigravity",
         bins: &["antigravity"],
         dirs: &[".antigravity", ".antigravity-ide"],
         auto: false,
+        rules: "AGENTS.md",
     },
-    Tool { id: "kiro", name: "Kiro", bins: &["kiro"], dirs: &[".kiro"], auto: false },
-    Tool { id: "gemini", name: "Gemini CLI", bins: &["gemini"], dirs: &[".gemini"], auto: false },
+    Tool {
+        id: "kiro",
+        name: "Kiro",
+        bins: &["kiro"],
+        dirs: &[".kiro"],
+        auto: false,
+        rules: ".kiro/steering/pixelpaw.md",
+    },
+    Tool {
+        id: "gemini",
+        name: "Gemini CLI",
+        bins: &["gemini"],
+        dirs: &[".gemini"],
+        auto: false,
+        rules: "GEMINI.md",
+    },
 ];
 
 pub fn home() -> Option<PathBuf> {
@@ -118,6 +157,8 @@ pub fn detect_agents() -> Vec<Detected> {
                 } else {
                     None
                 },
+                rules: t.rules,
+                flag: t.id,
             }
         })
         .collect()

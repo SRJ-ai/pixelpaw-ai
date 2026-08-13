@@ -42,7 +42,7 @@ export default function Games() {
     <div className="games-root">
       <header className="games-header">
         <span className="games-avatar">
-          <PixelCat appearance={settings.appearance} accessories={char.accessories} />
+          <PixelCat appearance={settings.appearance} accessories={char.accessories} species={char.species} />
         </span>
         <span className="games-stats">
           <strong>{settings.petName}</strong>

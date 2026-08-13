@@ -25,10 +25,23 @@ export interface Accessories {
   chestLight?: string; // tech chest light color
 }
 
+/**
+ * Which animal the rig draws.
+ *
+ * Everything before this was one cat in six colourways, which is fine for a
+ * costume but not for a different animal — a dog with pointed cat ears and
+ * whiskers just reads as a badly coloured cat. Species swaps the parts that
+ * actually carry the silhouette (ears, tail, muzzle, markings) and leaves the
+ * PART ids alone, so every existing animation drives all three unchanged.
+ */
+export type Species = "cat" | "dog" | "panda";
+
 export interface CharacterTheme {
   id: string;
   name: string;
   blurb: string;
+  /** Defaults to "cat" — the roster that existed before species did. */
+  species?: Species;
   appearance: PetAppearance;
   accessories: Accessories;
 }
@@ -96,6 +109,39 @@ export const CHARACTERS: CharacterTheme[] = [
       noseColor: "#6a6f75",
     },
     accessories: { armor: "#c9463a", visor: "#ffd23f", chestLight: "#5ad1ff" },
+  },
+  {
+    id: "dog",
+    name: "Biscuit",
+    species: "dog",
+    blurb: "Ears down, tail up, waiting.",
+    appearance: {
+      bodyColor: "#d9a25c",
+      bellyColor: "#f6e3c4",
+      // Doubles as the ear/muzzle shading on the dog rig.
+      patternColor: "#b07f3f",
+      innerEarColor: "#c98f4d",
+      eyeColor: "#5b3a1e",
+      noseColor: "#3a2a20",
+    },
+    accessories: {},
+  },
+  {
+    id: "panda",
+    name: "Bamboo",
+    species: "panda",
+    blurb: "Unbothered. Well rested.",
+    appearance: {
+      bodyColor: "#f4f1ea",
+      bellyColor: "#ffffff",
+      // The panda rig paints ears, patches and paws with this, so it is the
+      // marking colour rather than a stripe colour here.
+      patternColor: "#25272d",
+      innerEarColor: "#3a3d45",
+      eyeColor: "#2c2f36",
+      noseColor: "#25272d",
+    },
+    accessories: {},
   },
   {
     id: "samurai",

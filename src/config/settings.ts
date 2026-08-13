@@ -30,6 +30,12 @@ export interface GeneralSettings {
   cosmicDecor: boolean; // ambient stars + black hole behind the pet
   /** A note pinned above the pet, kept in sight until cleared. */
   pinnedNote: string;
+  /** Little synthesised cues on the moments worth hearing (§18). */
+  sound: boolean;
+  /** 0..1, applied to every cue. */
+  volume: number;
+  /** Park above the message pane of a focused coding-agent window (§21). */
+  dockToAgent: boolean;
   /** Language of the app's own chrome — separate from `ai.language`, which
    *  only decides what language the AI *replies* in. */
   uiLanguage: UiLang;
@@ -136,6 +142,11 @@ export const DEFAULT_SETTINGS: Settings = {
     reducedMotion: false,
     cosmicDecor: true,
     pinnedNote: "",
+    // On by default, but quiet: the cues are short and the pet is meant to be
+    // glanceable without looking at it.
+    sound: true,
+    volume: 0.4,
+    dockToAgent: true,
     uiLanguage: "en",
     neverSleep: true,
   },

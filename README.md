@@ -4,7 +4,7 @@ An original, intelligent **desktop companion** — a tiny hand-drawn pet that ge
 desktop, reacts to your mouse and activity, and (in later phases) grows an optional AI brain,
 productivity tools, and personality.
 
-**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.0/PixelPaw-AI-0.1.0-x64-setup.exe)** · 1.75 MB · Windows 10/11
+**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.0/PixelPaw.AI_0.2.0_x64-setup.exe)** · Windows 10/11 · [changelog](CHANGELOG.md)
 The build is unsigned, so SmartScreen will flag the publisher — choose *More info → Run anyway* if you're happy to proceed.
 
 > **Originality:** PixelPaw AI is an original product. It is *not* affiliated with, and copies no
@@ -44,8 +44,14 @@ What works today, for real (no mocks):
   yawn, stroll, and doze off after inactivity (waking when you return).
 - **Procedural animation engine:** state machine (priority / interruptibility / cooldowns) driving a
   procedural animator (breathing, blinking, tail sway, ear twitch, expressions) — no sprite assets.
-- **6 original characters:** Pixel (classic), Bolt (robot), Captain Paw (caped hero), Web-Whiskers
-  (masked acrobat), Iron Paw (armored tech), OG Ronin (samurai cat, "OG" headband + katana).
+- **Three species, eight characters:** a cat, a dog (Biscuit) and a panda (Bamboo), each with its
+  own ears, tail, muzzle and markings rather than a recolour — all on the same rig, so every
+  animation drives all three. Plus five cat costumes: Bolt (robot), Captain Paw (caped hero),
+  Web-Whiskers (masked acrobat), Iron Paw (armored tech), OG Ronin (samurai, "OG" headband + katana).
+- **A voice:** seven short synthesised cues — one instrument, so the pet sounds like one creature
+  rather than a drawer of beeps. Nothing is shipped as audio; it's a few hundred bytes of Web Audio.
+- **Two ways of speaking:** chatter gets a speech bubble; anything worth knowing while you're looking
+  elsewhere unrolls on a little paper scroll, so the difference reads without reading.
 - **Cosmic decor:** an ambient stylized black hole + twinkling stars behind the pet (toggleable).
 
 **Productivity**
@@ -74,12 +80,25 @@ What works today, for real (no mocks):
 - A **loopback-only status API** (`127.0.0.1:8787`) lets Claude Code, Codex, Cursor or any script
   tell the pet what it's doing. It reacts live: curious while working, celebrating on success,
   concerned on error. Token-authenticated, validates every field, and executes nothing.
+- **One-line CLI** so you never have to hand-write that request:
+  ```bash
+  pixelpaw-ai notify success --agent claude-code
+  ```
+  It finds the token itself, exits 0 when the pet isn't running (safe in a build script), and picks
+  up the current folder's name — so several sessions at once stay tellable apart in the bubble.
+- **Setup for the tool you actually use.** Settings detects what's installed. Claude Code connects
+  in one click (hooks written into its own `settings.json`, original backed up beside it).
+  Antigravity, Cursor, Kiro, Codex and Gemini CLI each get a *How* panel: the rule to paste into
+  that tool's own instructions file, plus a command to check it works.
+- **The pet parks beside the agent.** When one of those windows takes focus, the pet moves above its
+  input box, and goes back where it was when you leave.
 
 **Settings & privacy**
 - Full **Settings + customizer window**: character picker, pet name, recolor (6 colors, live
-  preview), size/opacity/always-on-top/reduced-motion, per-interaction toggles + sensitivities,
-  water/break/Pomodoro config, reminders, tasks, music, AI, memory, and a **privacy dashboard**.
-  Everything persists and applies live.
+  preview), size/opacity/always-on-top/reduced-motion, sound + volume, agent docking, a pinned note,
+  per-interaction toggles + sensitivities, water/break/Pomodoro config, reminders, tasks, music, AI,
+  memory, a **privacy dashboard**, and **diagnostics** holding the last crash. Everything persists
+  and applies live.
 
 **Games & progression**
 - **Mini-games** from the tray: a reaction test and a memory match, both awarding XP and bond.
@@ -88,9 +107,11 @@ What works today, for real (no mocks):
   behavioural only; nothing real is ever locked behind them.
 
 **Tests**
-- 39 unit tests (`npm test`) covering the animation state machine (priority, cooldowns,
-  interruptibility), the idle director, settings persistence/migration, progression maths
-  (levels, bond tiers, achievements), and prompt construction.
+- **98 tests** — 85 TypeScript (`npm test`) and 13 Rust (`cargo test`) — covering the animation
+  state machine (priority, cooldowns, interruptibility), the idle director, settings
+  persistence/migration, reminder scheduling and catch-up, progression maths, prompt construction,
+  the sound cue table, the crash log, agent-window recognition, and a byte-for-byte round trip on
+  the hook config we write into somebody else's editor settings.
 
 Everything above runs **fully offline**. The architecture is laid out so later phases (AI chat,
 memory, voice, AI-agent reactions, games, full OG Samurai cinematic, Telugu support,
@@ -196,8 +217,9 @@ The debug binary is at `src-tauri/target/debug/PixelPaw AI.exe` after a `cargo b
 | 10 | AI-agent status reactions + local API | ✅ |
 | 11 | Customization (characters, colours, sizing) | ✅ |
 | 12 | Progression (XP/bond/achievements) ✅ · mini-games ✅ · pet room | ◐ |
-| 13 | OG Samurai character + cinematic entrance ✅ · UI Telugu i18n | ◐ |
-| 14 | Tests (39 unit tests) ✅ · perf/security hardening | ◐ |
+| 13 | OG Samurai character + cinematic entrance ✅ · UI Telugu i18n ✅ | ✅ |
+| 14 | Tests (98) ✅ · perf/security hardening | ◐ |
 | 15 | Installer (NSIS) ✅ · auto-update | ◐ |
+| 16 | Sound ✅ · paper-scroll announcements ✅ · dog + panda species ✅ | ✅ |
 
 Legend: ✅ done · ◐ partly done · ⏳ not started

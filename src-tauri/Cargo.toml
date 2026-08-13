@@ -1,6 +1,6 @@
 [package]
 name = "pixelpaw-ai"
-version = "0.1.1"
+version = "0.2.0"
 description = "PixelPaw AI - an original intelligent desktop companion"
 authors = ["PixelPaw"]
 edition = "2021"
@@ -29,7 +29,17 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 
 # Windows-only: low-level mouse hook for global scroll-wheel detection (delta only).
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["winuser", "windef", "minwindef"] }
+winapi = { version = "0.3", features = [
+  "winuser",
+  "windef",
+  "minwindef",
+  # Reading the foreground window's executable, so the pet can tell a coding
+  # agent's window from any other (see dock.rs).
+  "processthreadsapi",
+  "handleapi",
+  "winbase",
+  "winnt",
+] }
 
 [profile.release]
 panic = "abort"

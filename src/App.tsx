@@ -5,11 +5,13 @@ import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
 import { MediaPill, type UiBox } from "./pet/render/MediaPill";
 import { PinnedNote, PomodoroTimer } from "./pet/render/PetOverlays";
+import { PaperScroll } from "./pet/render/PaperScroll";
 import { SpeechBubble } from "./pet/render/SpeechBubble";
 import { BreakBurst } from "./pet/render/BreakBurst";
 import { SamuraiEntrance } from "./pet/render/SamuraiEntrance";
-import { PetEngine } from "./pet/engine";
+import { PetEngine, type SayTone } from "./pet/engine";
 import { bus } from "./events/eventBus";
+import { playCue, setSound } from "./platform/sound";
 import { t } from "./config/i18n";
 import { loadSettings, onSettingsChanged, saveSettings, type Settings } from "./config/settings";
 import { characterById } from "./config/characters";
@@ -23,11 +25,14 @@ function applyGeneral(g: Settings["general"]) {
   el.style.setProperty("--pet-scale", String(g.scale));
   el.style.setProperty("--pet-opacity", String(g.opacity));
   document.body.classList.toggle("reduced-motion", g.reducedMotion);
+  setSound(g.sound, g.volume);
   getCurrentWindow()
     .setAlwaysOnTop(g.alwaysOnTop)
     .catch(() => {});
   // Keep the native click-through hit box in step with the drawn size.
   emit("pet:scale", g.scale).catch(() => {});
+  // The focus watcher runs on its own thread and can't read settings.
+  emit("pet:dock", g.dockToAgent).catch(() => {});
 }
 
 /**
@@ -39,7 +44,8 @@ export default function App() {
   const svgRef = useRef<SVGSVGElement>(null);
   const engineRef = useRef<PetEngine | null>(null);
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
-  const [say, setSay] = useState<string | null>(null);
+  /** One line at a time, plus how it should be shown (bubble or scroll). */
+  const [say, setSay] = useState<{ text: string; tone: SayTone } | null>(null);
   const [breaking, setBreaking] = useState(false);
   const [samurai, setSamurai] = useState(false);
   const [pillOpen, setPillOpen] = useState(false);
@@ -58,8 +64,8 @@ export default function App() {
 
     const engine = new PetEngine(
       (status) => setPomo(status.pomo),
-      (text, ms) => {
-        setSay(text);
+      (text, ms, tone = "chat") => {
+        setSay({ text, tone });
         window.clearTimeout(sayTimer.current);
         sayTimer.current = window.setTimeout(() => setSay(null), ms);
       },
@@ -118,7 +124,8 @@ export default function App() {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     listen("app:second-instance", () => {
-      setSay("I'm already here! Right-click me 🐾");
+      setSay({ text: "I'm already here! Right-click me 🐾", tone: "chat" });
+      playCue("chirp");
       window.clearTimeout(sayTimer.current);
       sayTimer.current = window.setTimeout(() => setSay(null), 4200);
     }).then((u) => (unlisten = u));
@@ -183,7 +190,7 @@ export default function App() {
     return () => window.clearTimeout(samTimer.current);
   }, [settings.characterId, settings.general.reducedMotion]);
 
-  const accessories = characterById(settings.characterId).accessories;
+  const character = characterById(settings.characterId);
 
   return (
     <div
@@ -200,9 +207,21 @@ export default function App() {
         remainingMs={pomo.remainingMs}
         label={t(pomo.phase === "focus" ? "pet.timerFocus" : "pet.timerBreak")}
       />
-      <SpeechBubble text={say} />
+      {/* One line at a time, so these never collide: chatter gets the bubble,
+          anything worth noticing unrolls on paper. */}
+      <SpeechBubble text={say?.tone === "chat" ? say.text : null} />
+      <PaperScroll
+        text={say?.tone === "notice" ? say.text : null}
+        reducedMotion={settings.general.reducedMotion}
+      />
       <MediaPill open={pillOpen} onBox={onPillBox} onHoverChange={keepPillOpen} onPress={extendPill} />
-      <PixelCat ref={svgRef} appearance={settings.appearance} accessories={accessories} decor={settings.general.cosmicDecor} />
+      <PixelCat
+        ref={svgRef}
+        appearance={settings.appearance}
+        accessories={character.accessories}
+        species={character.species}
+        decor={settings.general.cosmicDecor}
+      />
       <BreakBurst active={breaking} />
       <SamuraiEntrance active={samurai} caption="ఏం చేద్దాం బాస్?" />
     </div>

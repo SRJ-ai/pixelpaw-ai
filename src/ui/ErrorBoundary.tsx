@@ -12,6 +12,7 @@
  * and a way to recover.
  */
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { recordCrash } from "./crashLog";
 
 interface Props {
   children: ReactNode;
@@ -32,6 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("[PixelPaw] render failed", error, info.componentStack);
+    recordCrash(error, info.componentStack ?? undefined);
   }
 
   private reset = () => this.setState({ error: null });
@@ -41,12 +43,17 @@ export class ErrorBoundary extends Component<Props, State> {
     if (!error) return this.props.children;
 
     if (this.props.variant === "pet") {
-      // Deliberately tiny and still hit-testable: the native right-click menu
-      // is bound to this window, so as long as something is drawn the user can
-      // still reach Settings and Quit.
+      // Small, still hit-testable — the native right-click menu is bound to
+      // this window, so as long as something is drawn the user can still reach
+      // Settings and Quit — but no longer mute. A bare red dot on the wallpaper
+      // is unanswerable; the message beside it names the failure, and Settings
+      // keeps the full record.
       return (
-        <div className="pp-crash" role="alert" title={`PixelPaw hit an error: ${error.message}`}>
-          <span aria-hidden="true">!</span>
+        <div className="pp-crash" role="alert">
+          <span className="pp-crash-mark" aria-hidden="true">
+            !
+          </span>
+          <span className="pp-crash-text">{error.message || "PixelPaw stopped drawing."}</span>
         </div>
       );
     }

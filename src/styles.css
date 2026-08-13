@@ -231,20 +231,51 @@ body {
 
 /* Crash fallbacks (see ui/ErrorBoundary.tsx). The pet's marker stays small but
    hit-testable so the native right-click menu is still reachable. */
+/* A red dot alone was unanswerable — it appeared on the wallpaper and told
+   nobody anything. It now carries its own message, on the same tinted-dark
+   material as the pill and the timer so it reads as part of the app rather
+   than a stray desktop artifact. The red stays on the mark, where it means
+   something. */
 .pp-crash {
   position: absolute;
   bottom: 8%;
   left: 50%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  width: max-content;
+  max-width: 92%;
   transform: translateX(-50%);
+  padding: 6px 10px 6px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(14, 15, 20, 0.92);
+  color: #f3f4f8;
+  font: 600 11px/1.35 system-ui, "Segoe UI", sans-serif;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 0 1px rgba(209, 73, 63, 0.5),
+    0 3px 8px rgba(0, 0, 0, 0.34),
+    0 12px 28px rgba(0, 0, 0, 0.44);
+}
+.pp-crash-mark {
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: rgba(209, 73, 63, 0.94);
+  background: rgb(209, 73, 63);
   color: #fff;
-  font: 700 15px/1 system-ui, sans-serif;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  font: 700 12px/1 system-ui, sans-serif;
+}
+/* Enough to recognise the failure; the whole record lives in Settings. */
+.pp-crash-text {
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .crash-root {
   padding: var(--space-6) var(--space-5);
@@ -388,6 +419,81 @@ body {
   border-width: 6px 6px 0;
   border-style: solid;
   border-color: rgba(255, 255, 255, 0.97) transparent transparent;
+}
+
+/* ------------------------------------------------------------- paper scroll
+   Announcements unroll instead of popping. Shares the bubble's anchor so the
+   two never fight for the space over the cat — only one is ever on screen.
+   Warm paper against the cool glass of the pill and timer: the contrast is the
+   signal that this one is worth reading. */
+.pp-scroll {
+  position: absolute;
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 16px), calc(100% - 30px));
+  left: 50%;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 92%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  /* Leaving: hold, then fade out over the roll-up, so the paper does not
+     vanish halfway through rolling. Arriving is the rule below — quick, so the
+     unroll is the thing you watch rather than a fade. */
+  transition: opacity 320ms var(--ease-out) 80ms;
+}
+.pp-scroll.show {
+  opacity: 1;
+  transition: opacity 140ms var(--ease-out);
+}
+.pet-stage.pill-open .pp-scroll {
+  bottom: min(calc(4% + 84% * var(--pet-scale, 1) + 50px), calc(100% - 30px));
+}
+
+/* The two rods. The cap is the roll it came off; the rod is the weighted end
+   that travels down with the paper. */
+.pp-scroll-cap,
+.pp-scroll-rod {
+  display: block;
+  height: 7px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #a8794a, #7a5330 60%, #5f3f24);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.34);
+}
+.pp-scroll-rod {
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Sits under the cap when closed and travels the sheet's own height, which
+     is why the height is measured and handed in as --roll. */
+  top: 7px;
+  transform: translateY(0);
+  transition: transform 420ms var(--ease-out);
+}
+.pp-scroll.show .pp-scroll-rod { transform: translateY(var(--roll, 40px)); }
+
+.pp-scroll-sheet {
+  padding: 7px 12px;
+  background:
+    linear-gradient(90deg, rgba(122, 83, 48, 0.14), rgba(122, 83, 48, 0) 10% 90%, rgba(122, 83, 48, 0.14)),
+    linear-gradient(180deg, #fbf1dc, #f3e3c4);
+  color: #4a3313;
+  font: 600 var(--text-sm)/1.4 system-ui, "Segoe UI", sans-serif;
+  text-align: center;
+  overflow-wrap: anywhere;
+  /* Three lines, then stop — past that the paper covers the cat it belongs to. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  box-shadow: inset 0 -1px 3px rgba(122, 83, 48, 0.18);
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 420ms var(--ease-out);
+}
+.pp-scroll.show .pp-scroll-sheet { clip-path: inset(0 0 0 0); }
+
+body.reduced-motion .pp-scroll-sheet,
+body.reduced-motion .pp-scroll-rod {
+  transition: none;
 }
 
 .pet-stage svg {
@@ -906,11 +1012,23 @@ select.set-input { cursor: pointer; }
 /* Detected coding agents. The dot carries connected state, so the row reads at
    a glance without needing to parse the button label. */
 .set-agents { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }
-.set-agent { display: flex; align-items: center; gap: var(--space-3); }
+.set-agent { display: flex; flex-direction: column; }
+.set-agent-row { display: flex; align-items: center; gap: var(--space-3); }
 .set-agent-name { flex: 1 1 auto; font-weight: 600; }
-.set-agent-manual { font-style: normal; font-size: var(--text-2xs); color: var(--text-muted); }
 .set-agent .set-chip { flex: 0 0 auto; }
 .set-agent .set-chip:disabled { opacity: 0.5; cursor: default; }
+/* Secondary to Connect: this one only reveals text, so it stays an outline. */
+.set-chip.ghost { border-color: var(--line); color: var(--text-muted); }
+.set-chip.ghost:hover { border-color: var(--accent); color: var(--text); }
+
+/* The setup steps hang off their row rather than floating in the section, so
+   it stays obvious which agent they belong to once one is expanded. */
+.set-agent-steps {
+  margin: var(--space-3) 0 var(--space-2);
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--line);
+}
+.set-agent-steps .set-note:first-child { margin-top: 0; }
 .set-error { color: var(--danger); }
 
 /* Copyable snippet. Every code block in the agents panel exists to be taken,

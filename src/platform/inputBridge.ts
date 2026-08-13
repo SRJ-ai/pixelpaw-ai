@@ -49,3 +49,21 @@ export function subscribeAgent(
     cb(e.payload.agent, e.payload.status)
   );
 }
+
+/** Where the pet should park while a coding agent's window has focus (§21). */
+export interface DockTarget {
+  x: number;
+  y: number;
+  /** The tool we recognised, so the pet can name it. */
+  app: string;
+}
+
+export function subscribeDock(
+  onTarget: (t: DockTarget) => void,
+  onRelease: () => void
+): Promise<UnlistenFn[]> {
+  return Promise.all([
+    listen<DockTarget>("dock:target", (e) => onTarget(e.payload)),
+    listen("dock:release", () => onRelease()),
+  ]);
+}

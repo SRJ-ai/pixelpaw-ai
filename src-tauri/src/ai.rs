@@ -359,8 +359,20 @@ async fn claude_code(app: &AppHandle, req: &ChatRequest) -> Result<(), String> {
     let model = req.model.clone();
     // Blocking process I/O belongs off the async runtime's core threads.
     let output = tokio::task::spawn_blocking(move || {
+        use std::io::Write;
+        use std::process::Stdio;
+
         let mut cmd = std::process::Command::new(&cli);
-        cmd.arg("-p").arg(&prompt);
+        // The prompt goes in on stdin, never as an argument.
+        //
+        // npm installs the CLI as `claude.cmd` on Windows, and since Rust 1.77
+        // (the fix for CVE-2024-24576) `Command` refuses to pass an argument to
+        // a batch file that it cannot safely quote for cmd.exe. A chat prompt
+        // has newlines in it, which cmd.exe has no escape for, so every message
+        // failed with "batch file arguments are invalid" before it ever
+        // launched. Piping also sidesteps cmd.exe's 8191-character command line,
+        // which a few turns of conversation would have exceeded anyway.
+        cmd.arg("-p");
         // No tool access: this is a chat companion, not an agent session, so it
         // must never read, write or run anything on the user's machine.
         cmd.arg("--disallowedTools");
@@ -381,12 +393,22 @@ async fn claude_code(app: &AppHandle, req: &ChatRequest) -> Result<(), String> {
         if !model.is_empty() {
             cmd.arg("--model").arg(&model);
         }
+        cmd.stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped());
         #[cfg(windows)]
         {
             use std::os::windows::process::CommandExt;
             cmd.creation_flags(0x0800_0000); // CREATE_NO_WINDOW
         }
-        cmd.output()
+
+        let mut child = cmd.spawn()?;
+        // Dropping stdin closes the pipe, which is what tells the CLI the
+        // prompt is complete; without it `claude -p` waits for EOF forever.
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin.write_all(prompt.as_bytes())?;
+        }
+        child.wait_with_output()
     })
     .await
     .map_err(|e| format!("spawn: {e}"))?

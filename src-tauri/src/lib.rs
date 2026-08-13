@@ -17,6 +17,7 @@ mod agent;
 mod ai;
 mod cursor;
 mod detect;
+mod dock;
 mod input;
 mod media;
 mod menu;
@@ -33,6 +34,17 @@ pub fn run() {
     if let Some(code) = notify::handle_cli() {
         std::process::exit(code);
     }
+
+    // The pet's sound cues are synthesised in the webview, and Chromium starts
+    // an AudioContext suspended until a real user gesture. The pet window is
+    // click-through and driven by the *global* cursor stream, so it may never
+    // receive one — the cat would simply be mute. Read by the WebView2 loader,
+    // so it has to be set before the webview exists.
+    #[cfg(windows)]
+    std::env::set_var(
+        "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+        "--autoplay-policy=no-user-gesture-required",
+    );
 
     tauri::Builder::default()
         // Must be registered first. Without it, every click of the desktop
@@ -88,6 +100,10 @@ pub fn run() {
             // Loopback-only status endpoint so coding agents can drive the pet.
             agent::spawn(handle.clone());
 
+            // Watches which window has focus, so the pet can park beside the
+            // agent you are actually talking to.
+            dock::spawn(handle.clone());
+
             // The UI mirrors the pet's visual scale so click-through hit-testing
             // matches what's actually drawn.
             handle.listen("pet:scale", |event| {
@@ -103,6 +119,12 @@ pub fn run() {
                 if let Ok(rect) = serde_json::from_str::<window::UiRect>(event.payload()) {
                     window::set_ui_rect(&rect);
                 }
+            });
+
+            // The focus watcher runs off-thread and cannot read settings, so
+            // the UI mirrors this one across.
+            handle.listen("pet:dock", |event| {
+                window::set_dock_enabled(event.payload().trim() != "false");
             });
 
             Ok(())

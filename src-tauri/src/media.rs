@@ -42,13 +42,52 @@ impl MediaAction {
     }
 }
 
+/// Windows routes these two ways, and different players listen on different
+/// ones:
+///
+///   * the shell hands the key to whichever app owns the current media session
+///     (Spotify, a browser tab) — that path only needs the key to arrive;
+///   * players with their own global hotkeys (VLC, foobar2000, MusicBee) sit on
+///     a low-level keyboard hook and inspect the event before deciding.
+///
+/// The second group is why this uses `SendInput` with a real scan code from
+/// `MapVirtualKeyW` rather than the older `keybd_event` with a scan code of 0.
+/// A hook sees `KBDLLHOOKSTRUCT.scanCode`, and a zero there marks the event as
+/// synthetic in a way some players filter out — so "next track" reached Spotify
+/// but not VLC. With the mapped scan code the event is shaped exactly like a
+/// press of the key on a real keyboard.
 #[cfg(windows)]
 pub fn send(action: MediaAction) {
-    use winapi::um::winuser::{keybd_event, KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP};
-    let vk = action.vk();
+    use winapi::um::winuser::{
+        MapVirtualKeyW, SendInput, INPUT, INPUT_KEYBOARD, KEYEVENTF_EXTENDEDKEY, KEYEVENTF_KEYUP,
+        MAPVK_VK_TO_VSC,
+    };
+
+    let vk = action.vk() as u16;
+    // Media keys live on the extended half of the keyboard, so the scan code
+    // travels with KEYEVENTF_EXTENDEDKEY set.
+    let scan = unsafe { MapVirtualKeyW(vk as u32, MAPVK_VK_TO_VSC) } as u16;
+
+    let event = |flags: u32| -> INPUT {
+        let mut input: INPUT = unsafe { std::mem::zeroed() };
+        input.type_ = INPUT_KEYBOARD;
+        unsafe {
+            let ki = input.u.ki_mut();
+            ki.wVk = vk;
+            ki.wScan = scan;
+            ki.dwFlags = flags | KEYEVENTF_EXTENDEDKEY;
+        }
+        input
+    };
+
+    // Down and up in one call, so nothing can interleave between them.
+    let mut inputs = [event(0), event(KEYEVENTF_KEYUP)];
     unsafe {
-        keybd_event(vk, 0, KEYEVENTF_EXTENDEDKEY, 0);
-        keybd_event(vk, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+        SendInput(
+            inputs.len() as u32,
+            inputs.as_mut_ptr(),
+            std::mem::size_of::<INPUT>() as i32,
+        );
     }
 }
 

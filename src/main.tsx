@@ -4,7 +4,11 @@ import Settings from "./settings/Settings";
 import Chat from "./chat/Chat";
 import Games from "./games/Games";
 import { ErrorBoundary } from "./ui/ErrorBoundary";
+import { installCrashHandlers } from "./ui/crashLog";
 import "./styles.css";
+
+// Before anything renders, so a throw during the first paint is still caught.
+installCrashHandlers();
 
 // One bundle, several windows, routed by hash:
 //   ""  = the pet itself, "#settings", "#chat", "#games".

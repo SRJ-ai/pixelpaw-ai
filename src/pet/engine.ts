@@ -17,9 +17,12 @@ import {
   subscribePeek,
   subscribeWater,
   subscribeAgent,
+  subscribeDock,
   type AgentStatus,
+  type DockTarget,
 } from "@/platform/inputBridge";
 import { bus } from "@/events/eventBus";
+import { playCue, type SoundCue } from "@/platform/sound";
 import { t } from "@/config/i18n";
 import { award, levelFor, loadProgress, saveProgress, XP, type Progress } from "./progression";
 import {
@@ -91,6 +94,17 @@ export interface EngineStatus {
   /** Live countdown, so the UI can float a timer beside the pet. */
   pomo: { active: boolean; phase: "focus" | "break"; remainingMs: number };
 }
+
+/**
+ * How much a line matters, which decides how it is shown.
+ *
+ * `chat` is the pet talking — a poke, a greeting, an agent picking up work. It
+ * gets the speech bubble. `notice` is something you would want to know even if
+ * you were not looking at the pet: a reminder due, a focus block over, a
+ * session finished. Those unroll on paper instead, so the difference is
+ * readable at a glance rather than by reading.
+ */
+export type SayTone = "chat" | "notice";
 
 export class PetEngine {
   private sm = new StateMachine((s) => {
@@ -184,10 +198,12 @@ export class PetEngine {
   private progressDirty = false;
   private lastProgressSave = 0;
   private peek = { active: false, savedX: 0, savedY: 0 };
+  /** Parked beside a coding agent's window (§21), and where to go back to. */
+  private dock = { app: "", savedX: 0, savedY: 0 };
 
   constructor(
     private onStatus?: (s: EngineStatus) => void,
-    private onSay?: (text: string, ms: number) => void,
+    private onSay?: (text: string, ms: number, tone?: SayTone) => void,
     private onBreak?: () => void,
     /**
      * Fired when a reminder has run, so the UI can record the date it last
@@ -207,6 +223,12 @@ export class PetEngine {
     this.unlisten.push(await subscribePeek(() => void this.togglePeek()));
     this.unlisten.push(await subscribeWater(() => this.triggerWater(performance.now())));
     this.unlisten.push(await subscribeAgent((agent, status) => this.onAgent(agent, status)));
+    this.unlisten.push(
+      ...(await subscribeDock(
+        (target) => this.onDock(target),
+        () => this.onUndock()
+      ))
+    );
     this.unlisten.push(
       ...(await subscribeControl(
         () => this.pause(),
@@ -267,9 +289,27 @@ export class PetEngine {
    * The name lives in `ai.userName` because that is where it was first
    * collected, but it belongs to the pet, not to the AI.
    */
-  private say(key: NamedLine, ms: number) {
+  private say(key: NamedLine, ms: number, cue: SoundCue) {
     const name = this.settings.ai.userName.trim();
-    this.onSay?.(name ? t(NAMED[key], { name }) : t(key), ms);
+    this.announce(name ? t(NAMED[key], { name }) : t(key), ms, cue);
+  }
+
+  /**
+   * Announce something worth hearing: the paper scroll plus its cue.
+   *
+   * The look and the sound are decided in one call because they are the same
+   * editorial judgement — a line important enough to unroll is important
+   * enough to make a noise — and two calls is how the two drift apart.
+   */
+  private announce(text: string, ms: number, cue: SoundCue) {
+    this.onSay?.(text, ms, "notice");
+    playCue(cue);
+  }
+
+  /** The pet just talking. Speech bubble, and the lightest cue there is. */
+  private chat(text: string, ms: number, cue: SoundCue = "chirp") {
+    this.onSay?.(text, ms, "chat");
+    playCue(cue);
   }
 
   /** Apply user settings live (called on change from the settings window). */
@@ -300,10 +340,10 @@ export class PetEngine {
     this.progress = next;
     this.progressDirty = true;
     if (unlocked.length > 0) {
-      this.onSay?.(`🏆 ${unlocked[0].title}`, 3200);
+      this.announce(`🏆 ${unlocked[0].title}`, 3200, "chime");
       this.onBreak?.();
     } else if (leveledUp) {
-      this.onSay?.(t("pet.levelUp", { n: levelFor(this.progress.xp) }), 3000);
+      this.announce(t("pet.levelUp", { n: levelFor(this.progress.xp) }), 3000, "chime");
       this.onBreak?.();
     }
   }
@@ -477,7 +517,7 @@ export class PetEngine {
     const tier = Math.min(POKE_KEYS.length - 1, Math.floor((this.annoy.count - 1) / 2));
     if (tier === this.annoy.tier) return;
     this.annoy.tier = tier;
-    this.onSay?.(t(POKE_KEYS[tier]), 1800);
+    this.chat(t(POKE_KEYS[tier]), 1800, "pop");
   }
 
   private savePos() {
@@ -568,7 +608,7 @@ export class PetEngine {
     if (canOverheat && rate >= this.overheatRate) {
       if (this.sm.request("overheat", now) || this.sm.is("overheat")) {
         if (!this.typing.overheatSaid) {
-          this.onSay?.(t("pet.overheat"), 1800);
+          this.chat(t("pet.overheat"), 1800);
           this.typing.overheatSaid = true;
         }
       }
@@ -724,7 +764,7 @@ export class PetEngine {
   private triggerBreak(now: number) {
     this.lastBreakAt = now;
     this.sm.request("stretch", now);
-    this.say("pet.break", 3400);
+    this.say("pet.break", 3400, "nudge");
     this.onBreak?.();
   }
 
@@ -734,34 +774,35 @@ export class PetEngine {
     const now = performance.now();
     const who = agent || "agent";
     switch (status) {
+      // Picking up work is chatter — you were there when you asked for it.
       case "working":
         this.agentBusy = true;
         this.sm.request("curious", now);
-        this.onSay?.(t("pet.agentWorking", { who }), 2200);
+        this.chat(t("pet.agentWorking", { who }), 2200);
         break;
       case "thinking":
         this.agentBusy = true;
         this.sm.request("curious", now);
-        this.onSay?.(t("pet.agentThinking", { who }), 2200);
+        this.chat(t("pet.agentThinking", { who }), 2200);
         break;
+      // The three below are the reason to glance at the pet instead of the
+      // terminal, so all three announce rather than mutter.
       case "waiting":
-        // Blocked on the user: say so rather than staying quiet, which is the
-        // whole point of glancing at the pet instead of the terminal.
         this.sm.request("curious", now);
-        this.onSay?.(t("pet.agentWaiting", { who }), 2800);
+        this.announce(t("pet.agentWaiting", { who }), 2800, "nudge");
         break;
       case "success":
         this.agentBusy = false;
         this.sm.request("happy", now);
         this.needs.happiness = clamp(this.needs.happiness + 0.05, 0, 1);
-        this.onSay?.(t("pet.agentDone", { who }), 3400);
+        this.announce(t("pet.agentDone", { who }), 3400, "success");
         this.onBreak?.();
         this.grant(XP.agentSuccess, 5, "agentSuccesses");
         break;
       case "error":
         this.agentBusy = false;
         this.sm.request("surprised", now);
-        this.onSay?.(t("pet.agentError", { who }), 3000);
+        this.announce(t("pet.agentError", { who }), 3000, "error");
         break;
       case "cancelled":
       case "idle":
@@ -781,7 +822,7 @@ export class PetEngine {
   private triggerWater(now: number) {
     this.lastWaterAt = now;
     this.sm.request("happy", now);
-    this.say("pet.water", 3400);
+    this.say("pet.water", 3400, "nudge");
   }
 
   // ---- Scheduled reminders (§34) ----
@@ -800,7 +841,7 @@ export class PetEngine {
 
       this.firedToday.set(r.id, today);
       this.sm.request("surprised", now);
-      this.onSay?.(`⏰ ${r.title}`, 5200);
+      this.announce(`⏰ ${r.title}`, 5200, "nudge");
       this.onBreak?.(); // reuse the attention-grabbing flourish
       this.onReminderFired?.(r.id, today);
     }
@@ -817,7 +858,7 @@ export class PetEngine {
     this.lastTaskNudgeAt = now;
     const pick = pending[Math.floor(Math.random() * pending.length)];
     this.sm.request("curious", now);
-    this.onSay?.(`📝 ${pick.text}`, 4200);
+    this.announce(`📝 ${pick.text}`, 4200, "nudge");
   }
 
   // ---- Pomodoro (§36) + Focus (§37) ----
@@ -838,14 +879,14 @@ export class PetEngine {
     this.focusMode = true;
     this.flushStatus();
     this.sm.request("sit", now);
-    this.say("pet.focusStart", 3000);
+    this.say("pet.focusStart", 3000, "chime");
   }
 
   private stopPomodoro() {
     this.pomo.active = false;
     this.focusMode = false;
     this.flushStatus();
-    this.onSay?.(t("pet.pomodoroStopped"), 1600);
+    this.chat(t("pet.pomodoroStopped"), 1600, "pop");
   }
 
   private updatePomodoro(now: number) {
@@ -855,14 +896,52 @@ export class PetEngine {
       this.pomo.endsAt = now + this.settings.productivity.pomodoroBreakMin * 60000;
       this.focusMode = false;
       this.sm.request("stretch", now);
-      this.onSay?.(t("pet.focusDone"), 3400);
+      this.announce(t("pet.focusDone"), 3400, "chime");
       this.onBreak?.();
     } else {
       this.pomo.active = false;
       this.sm.request("happy", now);
-      this.say("pet.pomodoroDone", 3600);
+      this.say("pet.pomodoroDone", 3600, "chime");
       this.grant(XP.pomodoroComplete, 10, "pomodoros");
     }
+  }
+
+  // ---- Docking to a coding agent's window (§21) ----
+  /**
+   * Park above the agent's message pane, remembering where the pet was so it
+   * can go home afterwards.
+   *
+   * Rust re-sends this on every poll, because the agent's window can move or
+   * resize without focus ever changing. That makes the guards below the load
+   * bearing part: the first target is the one that saves the home position, and
+   * a target that arrives mid-drag is ignored outright rather than yanking the
+   * window out of the user's hand.
+   */
+  private onDock(target: DockTarget) {
+    if (this.drag.active || this.drag.pending || this.peek.active) return;
+    if (!this.dock.app) {
+      this.dock.savedX = this.winX;
+      this.dock.savedY = this.winY;
+      this.chat(t("pet.dockedTo", { app: target.app }), 2400, "pop");
+    }
+    this.dock.app = target.app;
+    if (Math.round(this.winX) === target.x && Math.round(this.winY) === target.y) return;
+    this.winX = target.x;
+    this.winY = target.y;
+    this.setWindow();
+  }
+
+  private onUndock() {
+    if (!this.dock.app) return;
+    this.dock.app = "";
+    // Only go home if the pet is still where docking put it. Dragging it
+    // somewhere while docked is the user choosing a new home, and undoing that
+    // on the next focus change would be maddening.
+    if (this.drag.active || this.drag.pending) return;
+    this.winX = this.dock.savedX;
+    this.winY = this.dock.savedY;
+    this.setWindow();
+    this.savePos();
   }
 
   // ---- Peek Mode (§18) ----

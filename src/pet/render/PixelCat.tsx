@@ -1,19 +1,26 @@
 import { forwardRef } from "react";
 import type { PetAppearance } from "@/types/pet";
-import type { Accessories } from "@/config/characters";
+import type { Accessories, Species } from "@/config/characters";
 import { PART } from "./parts";
 
 /**
- * Original, recolorable pixel-inspired cat + themed accessory layers. Rendered
- * ONCE; every moving part carries a stable id (see `PART`) so the animator drives
- * it imperatively. Accessories are original archetype pieces (cape, mask, katana,
- * antenna, armor…) layered over the same rig, so all animation works for every
- * character. No animation logic lives here — this is purely anatomy + costume.
+ * Original, recolorable pixel-inspired companion + themed accessory layers.
+ * Rendered ONCE; every moving part carries a stable id (see `PART`) so the
+ * animator drives it imperatively. Accessories are original archetype pieces
+ * (cape, mask, katana, antenna, armor…) layered over the same rig, so all
+ * animation works for every character. No animation logic lives here — this is
+ * purely anatomy + costume.
+ *
+ * Three species share the rig. Only the parts that carry the silhouette differ
+ * — ears, tail, muzzle and markings — and they keep the same ids, so a species
+ * is a drawing change and never an animation change.
  */
 
 interface Props {
   appearance: PetAppearance;
   accessories?: Accessories;
+  /** Which animal to draw. Defaults to the cat the rig started as. */
+  species?: Species;
   /** Ambient cosmic decor (stars + a stylized black hole) behind the pet. */
   decor?: boolean;
 }
@@ -31,11 +38,17 @@ const originBase = { transformBox: "fill-box", transformOrigin: "0% 100%" } as c
 const isLatin = (s: string) => /^[\x20-\x7e]*$/.test(s);
 
 export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
-  { appearance: a, accessories: acc = {}, decor = false },
+  { appearance: a, accessories: acc = {}, species = "cat", decor = false },
   ref
 ) {
   const badge = acc.headbandText ?? "OG";
   const teluguBadge = !isLatin(badge);
+  const isCat = species === "cat";
+  const isPanda = species === "panda";
+  // On the panda, patternColor is the marking colour: ears, eye patches and
+  // paws are all the same black, which is what makes the animal readable at
+  // 100px on a wallpaper.
+  const mark = isPanda ? a.patternColor : a.bodyColor;
 
   return (
     <svg
@@ -118,24 +131,85 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           </g>
         )}
 
-        {/* Tail */}
+        {/* Tail. The cat sweeps, the dog cocks up short, the panda has a stub. */}
         <g id={PART.tail} style={originBase as React.CSSProperties}>
-          <path
-            d="M74 82 Q95 80 90 58 Q88 49 82 52 Q89 66 73 75 Z"
-            fill={a.bodyColor}
-            stroke={OUTLINE}
-            strokeWidth={1}
-          />
+          {species === "cat" && (
+            <path
+              d="M74 82 Q95 80 90 58 Q88 49 82 52 Q89 66 73 75 Z"
+              fill={a.bodyColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+          )}
+          {species === "dog" && (
+            <path
+              d="M73 80 Q86 79 86 67 Q86 60 80 62 Q84 72 72 75 Z"
+              fill={a.bodyColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+          )}
+          {isPanda && (
+            // Tucked against the body, not beside it. The tail group is drawn
+            // behind the torso, so this reads as a stub peeking out — at cx 77
+            // it cleared the silhouette entirely and looked like a stray dot.
+            <ellipse cx="73" cy="78" rx="5.5" ry="5" fill={a.bellyColor} stroke={OUTLINE} strokeWidth={1} />
+          )}
         </g>
 
-        {/* Ears */}
+        {/* Ears. Same ids and same pivot, so the ear-flick animation is shared. */}
         <g id={PART.earL} style={originFeet as React.CSSProperties}>
-          <path d="M27 40 L45 37 L32 15 Z" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
-          <path d="M32 37 L41 35 L34 22 Z" fill={a.innerEarColor} />
+          {species === "cat" && (
+            <>
+              <path d="M27 40 L45 37 L32 15 Z" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+              <path d="M32 37 L41 35 L34 22 Z" fill={a.innerEarColor} />
+            </>
+          )}
+          {species === "dog" && (
+            <>
+              {/* Anchored below the crown. Starting at the very top of the
+                  head made both ears meet across it, which read as the brim of
+                  a helmet rather than as ears set on the sides. */}
+              <path
+                d="M31 38 Q19 39 18 52 Q17 65 27 66 Q34 63 34 50 Q34 41 31 38 Z"
+                fill={a.patternColor}
+                stroke={OUTLINE}
+                strokeWidth={1}
+              />
+              <path d="M30 43 Q24 45 23.5 53 Q23 61 28 62 Q31 59 31 51 Z" fill={a.innerEarColor} />
+            </>
+          )}
+          {isPanda && (
+            <>
+              <circle cx="31" cy="28" r="9.5" fill={mark} stroke={OUTLINE} strokeWidth={1} />
+              <circle cx="31" cy="28" r="4.6" fill={a.innerEarColor} />
+            </>
+          )}
         </g>
         <g id={PART.earR} style={originFeet as React.CSSProperties}>
-          <path d="M73 40 L55 37 L68 15 Z" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
-          <path d="M68 37 L59 35 L66 22 Z" fill={a.innerEarColor} />
+          {species === "cat" && (
+            <>
+              <path d="M73 40 L55 37 L68 15 Z" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+              <path d="M68 37 L59 35 L66 22 Z" fill={a.innerEarColor} />
+            </>
+          )}
+          {species === "dog" && (
+            <>
+              <path
+                d="M69 38 Q81 39 82 52 Q83 65 73 66 Q66 63 66 50 Q66 41 69 38 Z"
+                fill={a.patternColor}
+                stroke={OUTLINE}
+                strokeWidth={1}
+              />
+              <path d="M70 43 Q76 45 76.5 53 Q77 61 72 62 Q69 59 69 51 Z" fill={a.innerEarColor} />
+            </>
+          )}
+          {isPanda && (
+            <>
+              <circle cx="69" cy="28" r="9.5" fill={mark} stroke={OUTLINE} strokeWidth={1} />
+              <circle cx="69" cy="28" r="4.6" fill={a.innerEarColor} />
+            </>
+          )}
         </g>
 
         {/* Robot antenna (on top of head) */}
@@ -149,9 +223,25 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         {/* Torso / head blob */}
         <rect x="24" y="30" width="52" height="58" rx="22" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
         <ellipse cx="50" cy="72" rx="15" ry="17" fill={a.bellyColor} />
-        <rect x="47" y="31" width="6" height="3" rx="1.5" fill={a.patternColor} />
-        <rect x="40.5" y="33" width="5" height="2.4" rx="1.2" fill={a.patternColor} />
-        <rect x="54.5" y="33" width="5" height="2.4" rx="1.2" fill={a.patternColor} />
+        {/* Forehead tabby marks — a cat thing, and wrong on the other two. */}
+        {isCat && (
+          <>
+            <rect x="47" y="31" width="6" height="3" rx="1.5" fill={a.patternColor} />
+            <rect x="40.5" y="33" width="5" height="2.4" rx="1.2" fill={a.patternColor} />
+            <rect x="54.5" y="33" width="5" height="2.4" rx="1.2" fill={a.patternColor} />
+          </>
+        )}
+        {/* The panda's arms. Two shapes rather than one band across the body:
+            the torso's bottom corners are rounded (rx 22), so a straight band
+            overhung the silhouette on both sides and read as a black bar laid
+            over the animal. These are inset to stay within the curve, and they
+            run down into the paws so arm and hand read as one limb. */}
+        {isPanda && (
+          <g fill={mark}>
+            <ellipse cx="35.5" cy="78" rx="6" ry="9" />
+            <ellipse cx="64.5" cy="78" rx="6" ry="9" />
+          </g>
+        )}
 
         {/* Subtle shading */}
         <ellipse cx="45" cy="48" rx="22" ry="19" fill="url(#pp-sheen)" style={{ pointerEvents: "none" }} />
@@ -159,10 +249,10 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
 
         {/* Front paws (kneading-capable) */}
         <g id={PART.pawL} style={originCenter as React.CSSProperties}>
-          <ellipse cx="39" cy="87" rx="6.5" ry="4" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+          <ellipse cx="39" cy="87" rx="6.5" ry="4" fill={mark} stroke={OUTLINE} strokeWidth={1} />
         </g>
         <g id={PART.pawR} style={originCenter as React.CSSProperties}>
-          <ellipse cx="61" cy="87" rx="6.5" ry="4" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+          <ellipse cx="61" cy="87" rx="6.5" ry="4" fill={mark} stroke={OUTLINE} strokeWidth={1} />
         </g>
 
         {/* Robot belly screen */}
@@ -232,15 +322,26 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           />
         )}
 
-        {/* Whiskers */}
-        <g stroke="#ececef" strokeWidth="0.8" opacity="0.7" strokeLinecap="round">
-          <line x1="30" y1="58" x2="15" y2="55" />
-          <line x1="30" y1="61" x2="13" y2="61" />
-          <line x1="30" y1="64" x2="15" y2="67" />
-          <line x1="70" y1="58" x2="85" y2="55" />
-          <line x1="70" y1="61" x2="87" y2="61" />
-          <line x1="70" y1="64" x2="85" y2="67" />
-        </g>
+        {/* Whiskers — cat only. On a dog or a panda they read as a mistake. */}
+        {isCat && (
+          <g stroke="#ececef" strokeWidth="0.8" opacity="0.7" strokeLinecap="round">
+            <line x1="30" y1="58" x2="15" y2="55" />
+            <line x1="30" y1="61" x2="13" y2="61" />
+            <line x1="30" y1="64" x2="15" y2="67" />
+            <line x1="70" y1="58" x2="85" y2="55" />
+            <line x1="70" y1="61" x2="87" y2="61" />
+            <line x1="70" y1="64" x2="85" y2="67" />
+          </g>
+        )}
+
+        {/* Panda eye patches, behind the eyes. Tilted outward, which is what
+            separates a panda from a raccoon. */}
+        {isPanda && (
+          <g fill={mark}>
+            <ellipse cx="37" cy="53" rx="9" ry="10.5" transform="rotate(-20 37 53)" />
+            <ellipse cx="63" cy="53" rx="9" ry="10.5" transform="rotate(20 63 53)" />
+          </g>
+        )}
 
         {/* Eyes */}
         <g id={PART.eyeL} style={originCenter as React.CSSProperties}>
@@ -267,8 +368,19 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         <ellipse id={PART.blushL} cx="31" cy="60" rx="4" ry="2.4" fill="#ff9db0" opacity="0" />
         <ellipse id={PART.blushR} cx="69" cy="60" rx="4" ry="2.4" fill="#ff9db0" opacity="0" />
 
-        {/* Nose */}
-        <path d="M47 61 L53 61 L50 65 Z" fill={a.noseColor} />
+        {/* Muzzle — the dog's snout is the other half of its silhouette; the
+            ears alone still read feline without it. */}
+        {species === "dog" && (
+          <ellipse cx="50" cy="66.5" rx="13" ry="7" fill={a.bellyColor} opacity="0.9" />
+        )}
+
+        {/* Nose. A cat's is a small triangle; the other two are rounded and
+            noticeably bigger. */}
+        {isCat ? (
+          <path d="M47 61 L53 61 L50 65 Z" fill={a.noseColor} />
+        ) : (
+          <ellipse cx="50" cy="61.5" rx="4.4" ry="3.2" fill={a.noseColor} />
+        )}
 
         {/* Mouths (only one shown at a time) */}
         <g id={PART.mouthNeutral} fill="none" stroke="#5a4636" strokeWidth="1.3" strokeLinecap="round">

@@ -7,7 +7,7 @@
 > Claude Code, Anthropic, OpenAI, Gemini, OpenAI-compatible endpoints and local
 > Ollama models.
 
-Current version: 0.1.1 (released 11 August 2026)
+Current version: 0.2.0 (released 13 August 2026)
 Licence: open source, free, no account required
 Platform: Windows 10 and Windows 11, x64
 Download size: 1.76 MB (NSIS installer, unsigned)
@@ -35,14 +35,31 @@ existing product or franchise.
   with Spotify, a browser tab, or any local player.
 - **Games and progression.** Reaction and memory mini-games earn XP, and a bond
   level deepens from Stranger to Special Bond through ordinary use.
-- **Characters.** Six original archetypes (classic, robot, caped hero, masked
-  acrobat, armoured tech, and a samurai cat with a cinematic entrance), each fully
-  recolourable.
+- **Characters.** Three species — a cat, a dog and a panda — each drawn with its own
+  ears, tail, muzzle and markings rather than as a recolour, and all sharing one
+  animation rig. Plus five cat costumes: robot, caped hero, masked acrobat,
+  armoured tech, and a samurai with a cinematic entrance. Everything recolourable.
+- **Sound.** Seven short cues, synthesised rather than shipped as audio files, on
+  the moments worth hearing: a session finishing, a focus block ending, a reminder
+  falling due, a failure. One instrument across all of them. Off in one click.
+- **Two registers of speech.** Ordinary chatter appears in a speech bubble;
+  anything worth knowing while you are looking elsewhere unrolls on a paper scroll,
+  so the two are distinguishable at a glance.
 - **Languages.** The interface ships in English and Telugu. The AI companion can
   additionally reply in Hindi or a Telugu-English mix.
 - **Coding-agent reactions.** A loopback-only HTTP endpoint on 127.0.0.1 lets a
   coding agent post its status, and the pet reacts when work starts, succeeds or
-  fails.
+  fails. A bundled command, `pixelpaw-ai notify <status> --agent <name>`, finds the
+  token itself, labels the session with the current folder name, and exits quietly
+  when the pet is not running, so it is safe inside a build script.
+- **Agent setup for the tool you use.** The app detects Claude Code, Codex, Cursor,
+  Antigravity, Kiro and Gemini CLI. Claude Code connects in one click by writing
+  hooks into its own settings file, keeping a backup of the original. The others
+  get the exact rule to paste into their own instructions file — AGENTS.md,
+  .cursor/rules, .kiro/steering or GEMINI.md — plus a command to verify it.
+- **It sits beside your agent.** When a coding agent's window takes focus, the pet
+  moves to just above that window's input box, and returns to where it was when the
+  window loses focus.
 
 ## Privacy
 
@@ -69,7 +86,7 @@ web view.
 
 - [Home](https://srj-ai.github.io/pixelpaw-ai/): the landing page, with a live
   interactive cat you can pet in the browser.
-- [Download 0.1.1](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.1.1/PixelPaw.AI_0.1.1_x64-setup.exe): the Windows x64 installer.
+- [Download 0.2.0](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.0/PixelPaw.AI_0.2.0_x64-setup.exe): the Windows x64 installer.
 - [Releases](https://github.com/SRJ-ai/pixelpaw-ai/releases): all versions and
   release notes.
 - [Source](https://github.com/SRJ-ai/pixelpaw-ai): the full source, built with

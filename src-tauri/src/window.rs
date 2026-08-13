@@ -1,6 +1,6 @@
 //! Pet window helpers: placement and cursor hit-testing.
 
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
 
 pub const PET_LABEL: &str = "pet";
@@ -17,6 +17,19 @@ pub fn set_pet_scale(scale: f32) {
 
 fn pet_scale() -> f32 {
     PET_SCALE_MILLI.load(Ordering::Relaxed) as f32 / 1000.0
+}
+
+/// Whether the pet should park beside a focused coding-agent window (see
+/// `dock.rs`). Mirrored from settings, because the watcher runs on its own
+/// thread and must not touch the webview to ask.
+static DOCK_ENABLED: AtomicBool = AtomicBool::new(true);
+
+pub fn set_dock_enabled(on: bool) {
+    DOCK_ENABLED.store(on, Ordering::Relaxed);
+}
+
+pub fn dock_enabled() -> bool {
+    DOCK_ENABLED.load(Ordering::Relaxed)
 }
 
 /// An extra interactive rectangle the webview asks to be clickable, in

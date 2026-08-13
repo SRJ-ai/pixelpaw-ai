@@ -20,6 +20,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { DEFAULT_APPEARANCE } from "@/types/pet";
 import { CHARACTERS, characterById } from "@/config/characters";
 import { setUiLang, t, UI_LANGUAGES, type StringKey, type UiLang } from "@/config/i18n";
+import { clearCrash, readCrash } from "@/ui/crashLog";
+import { playCue, setSound } from "@/platform/sound";
 
 type TabId = "pet" | "behavior" | "focus" | "ai" | "more";
 
@@ -82,7 +84,11 @@ export default function Settings() {
     <div className="settings-root">
       <header className="set-header">
         <div className="set-preview">
-          <PixelCat appearance={s.appearance} accessories={characterById(s.characterId).accessories} />
+          <PixelCat
+            appearance={s.appearance}
+            accessories={characterById(s.characterId).accessories}
+            species={characterById(s.characterId).species}
+          />
         </div>
         <div>
           <h1>{BRANDING.appName}</h1>
@@ -138,7 +144,7 @@ export default function Settings() {
                 }
               >
                 <span className="set-char-preview">
-                  <PixelCat appearance={c.appearance} accessories={c.accessories} />
+                  <PixelCat appearance={c.appearance} accessories={c.accessories} species={c.species} />
                 </span>
                 <span className="set-char-name">{c.name}</span>
               </button>
@@ -206,7 +212,33 @@ export default function Settings() {
           <Toggle label={t("set.cosmicDecor")} checked={g.cosmicDecor} onChange={(v) => patch((d) => (d.general.cosmicDecor = v))} />
           <Toggle label={t("set.neverSleep")} checked={g.neverSleep} onChange={(v) => patch((d) => (d.general.neverSleep = v))} />
           <Toggle label={t("set.reducedMotion")} checked={g.reducedMotion} onChange={(v) => patch((d) => (d.general.reducedMotion = v))} />
+          <Toggle
+            label={t("set.dockToAgent")}
+            checked={g.dockToAgent}
+            onChange={(v) => patch((d) => (d.general.dockToAgent = v))}
+          />
+          <Toggle label={t("set.sound")} checked={g.sound} onChange={(v) => patch((d) => (d.general.sound = v))} />
+          {g.sound && (
+            <Slider
+              label={t("set.volume")}
+              min={0}
+              max={1}
+              step={0.05}
+              value={g.volume}
+              sub
+              fmt={pct}
+              onChange={(v) => {
+                patch((d) => (d.general.volume = v));
+                // Arm this window's own audio and sound a cue as the handle
+                // moves. Hearing the level while setting it beats a separate
+                // "test" button, and it is the only honest preview.
+                setSound(true, v);
+                playCue("pop");
+              }}
+            />
+          )}
           <p className="set-note">{t("set.note.pinned")}</p>
+          <p className="set-note">{t("set.note.dock")}</p>
         </Section>
 
         <Section title={t("set.section.interactions")}>
@@ -557,6 +589,10 @@ X-PixelPaw-Token: ${agentInfo.token}
           <PrivacyRow label={t("set.privacy.scroll")} on={i.scroll} desc={t("set.privacy.scrollDesc")} />
         </Section>
 
+        <Section title={t("set.section.diagnostics")}>
+          <LastCrash />
+        </Section>
+
         <Section title={t("set.section.about")}>
           <p className="set-note">
             {t("set.about", { app: BRANDING.appName, version: BRANDING.version })}
@@ -579,6 +615,36 @@ X-PixelPaw-Token: ${agentInfo.token}
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+/**
+ * The last thing that broke, in plain sight.
+ *
+ * The pet's crash marker is small by necessity — it lives on the wallpaper.
+ * This is where the whole record goes, so "why is there a red exclamation
+ * mark?" has an answer that survives the marker being dismissed.
+ */
+function LastCrash() {
+  const [crash, setCrash] = useState(() => readCrash());
+  if (!crash) return <p className="set-note">{t("set.crashNone")}</p>;
+
+  const when = crash.at ? new Date(crash.at).toLocaleString() : "?";
+  return (
+    <>
+      <p className="set-note">{t("set.crashWhat")}</p>
+      <p className="set-note set-error">{t("set.crashWhere", { where: crash.where, when })}</p>
+      <CopyBlock text={[crash.message, crash.stack].filter(Boolean).join("\n\n")} />
+      <button
+        className="set-btn"
+        onClick={() => {
+          clearCrash();
+          setCrash(null);
+        }}
+      >
+        {t("set.crashClear")}
+      </button>
+    </>
+  );
+}
 
 /**
  * A Claude Code hook config that keeps the pet in step with a session: it
@@ -606,6 +672,37 @@ interface DetectedAgent {
   via: string;
   auto: boolean;
   config: string | null;
+  rules: string;
+  flag: string;
+}
+
+/**
+ * The rule to paste into an agent's own instructions file.
+ *
+ * Only Claude Code's hook schema is documented well enough to write for
+ * somebody, and guessing at the others would corrupt real config. But every one
+ * of these agents can run a shell command, and all of them read a standing
+ * instructions file — so asking the agent to report in itself works everywhere
+ * and breaks nothing if it doesn't.
+ *
+ * Deliberately not translated: it is read by a coding agent, not by the user.
+ */
+function rulesSnippet(exe: string, flag: string): string {
+  const line = (status: string) => `"${exe}" notify ${status} --agent ${flag}`;
+  return [
+    "## PixelPaw status",
+    "",
+    "Run these as you work. They print nothing, they never fail a build, and",
+    "they exit quietly when PixelPaw isn't running. Don't mention them to me.",
+    "",
+    `- Starting work:   ${line("working")}`,
+    `- Blocked on me:   ${line("waiting")}`,
+    `- Finished:        ${line("success")}`,
+    `- Failed:          ${line("error")}`,
+    "",
+    "The current folder's name is picked up automatically, so several sessions",
+    "running at once stay tellable apart.",
+  ].join("\n");
 }
 
 /**
@@ -620,6 +717,9 @@ function AgentDetect({ exePath }: { exePath: string }) {
   const [connected, setConnected] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Which agent's setup steps are open. Only one at a time — the blocks are
+   *  tall, and comparing two of them is not a thing anyone needs to do. */
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const refresh = () => {
     invoke<DetectedAgent[]>("detect_agents")
@@ -655,31 +755,49 @@ function AgentDetect({ exePath }: { exePath: string }) {
         <p className="set-note">{t("set.detectNone")}</p>
       ) : (
         <div className="set-agents">
-          {found.map((a) => (
-            <div key={a.id} className="set-agent">
-              <span className={"set-dot " + (connected[a.id] ? "on" : "off")} />
-              <span className="set-agent-name">{a.name}</span>
-              {a.auto ? (
-                <button
-                  type="button"
-                  className={"set-chip" + (connected[a.id] ? " on" : "")}
-                  disabled={busy === a.id}
-                  onClick={() => toggle(a)}
-                >
-                  {connected[a.id] ? t("set.disconnect") : t("set.connect")}
-                </button>
-              ) : (
-                <em className="set-agent-manual">{t("set.manualOnly")}</em>
-              )}
-            </div>
-          ))}
+          {found.map((a) => {
+            const open = openId === a.id;
+            return (
+              <div key={a.id} className={"set-agent" + (open ? " open" : "")}>
+                <div className="set-agent-row">
+                  <span className={"set-dot " + (connected[a.id] ? "on" : "off")} />
+                  <span className="set-agent-name">{a.name}</span>
+                  {a.auto && (
+                    <button
+                      type="button"
+                      className={"set-chip" + (connected[a.id] ? " on" : "")}
+                      disabled={busy === a.id}
+                      onClick={() => toggle(a)}
+                    >
+                      {connected[a.id] ? t("set.disconnect") : t("set.connect")}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="set-chip ghost"
+                    aria-expanded={open}
+                    aria-controls={`agent-steps-${a.id}`}
+                    onClick={() => setOpenId(open ? null : a.id)}
+                  >
+                    {open ? t("set.hideSteps") : t("set.showSteps")}
+                  </button>
+                </div>
+                {open && (
+                  <div className="set-agent-steps" id={`agent-steps-${a.id}`}>
+                    {a.auto && <p className="set-note">{t("set.stepAlso")}</p>}
+                    <p className="set-note">{t("set.stepPaste", { file: a.rules })}</p>
+                    <CopyBlock text={rulesSnippet(exePath, a.flag)} />
+                    <p className="set-note">{t("set.stepVerify")}</p>
+                    <CopyBlock text={`"${exePath}" notify success --agent ${a.flag}`} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
       {found.some((a) => a.auto) && <p className="set-note">{t("set.note.connectWrites")}</p>}
       {error && <p className="set-note set-error">{error}</p>}
-      <p className="set-note" hidden>
-        {exePath}
-      </p>
     </>
   );
 }
