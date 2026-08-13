@@ -4,8 +4,11 @@ An original, intelligent **desktop companion** — a tiny hand-drawn pet that ge
 desktop, reacts to your mouse and activity, and (in later phases) grows an optional AI brain,
 productivity tools, and personality.
 
-**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.0/PixelPaw.AI_0.2.0_x64-setup.exe)** · Windows 10/11 · [changelog](CHANGELOG.md)
-The build is unsigned, so SmartScreen will flag the publisher — choose *More info → Run anyway* if you're happy to proceed.
+**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.1/PixelPaw.AI_0.2.1_x64-setup.exe)** · Windows 10/11 · [changelog](CHANGELOG.md)
+Updates install themselves from here on. The build carries no Authenticode certificate, so
+SmartScreen will flag the publisher on first install — choose *More info → Run anyway* if you're
+happy to proceed. (Updates *are* cryptographically signed, and the app refuses any that don't
+verify; that's a separate mechanism from the Windows publisher certificate.)
 
 > **Originality:** PixelPaw AI is an original product. It is *not* affiliated with, and copies no
 > code, art, sound, branding, or assets from, any existing desktop-pet product. Only the general
@@ -185,6 +188,29 @@ npm run tauri build    # produces an NSIS installer + exe
 ```
 
 The debug binary is at `src-tauri/target/debug/PixelPaw AI.exe` after a `cargo build`.
+
+## Releasing
+
+Installed copies check `docs/latest.json` on GitHub Pages and refuse any build that
+doesn't verify against the public key compiled into them, so a release has to be signed
+or nobody can install it.
+
+The private key lives at `~/.pixelpaw/updater.key` and is **not in this repo**. Back it up:
+losing it means no existing install can ever be updated again, because the public half is
+baked into every copy already out there.
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.pixelpaw/updater.key)"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
+npm run tauri build      # produces the installer + a .sig beside it
+npm run manifest         # writes docs/latest.json from that .sig
+```
+
+Then upload the installer to a `v<version>` GitHub release as
+`PixelPaw.AI_<version>_x64-setup.exe` (dots, not spaces — GitHub percent-encodes spaces
+and the updater URL has to be clean), and push `docs/` so Pages serves the new manifest.
+`npm run manifest` refuses to write anything if the build wasn't signed, which is the
+guard against shipping a release nobody can install.
 
 ## Controls
 

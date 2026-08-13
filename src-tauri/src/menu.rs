@@ -69,6 +69,14 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let chat = MenuItem::with_id(app, "chat", "Chat with pet…", true, None::<&str>)?;
     let games = MenuItem::with_id(app, "games", "Play a game…", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "Settings…", true, None::<&str>)?;
+    // Names the state rather than the action when something is waiting, so the
+    // item answers "is there an update?" without having to be clicked.
+    let update_label = if crate::update::update_pending() {
+        "Install update…"
+    } else {
+        "Check for updates"
+    };
+    let update = MenuItem::with_id(app, "update", update_label, true, None::<&str>)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "quit", "Quit PixelPaw", true, None::<&str>)?;
 
@@ -77,7 +85,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         &[
             &show, &hide, &pause, &resume, &recenter, &peek, &pomodoro, &take_break, &water,
             &sep_media, &media_prev, &media_play, &media_next, &vol_down, &vol_up, &vol_mute, &sep,
-            &chat, &games, &settings, &sep2, &quit,
+            &chat, &games, &settings, &update, &sep2, &quit,
         ],
     )
 }
@@ -122,6 +130,20 @@ pub fn handle(app: &AppHandle, id: &str) {
             if let Some(a) = crate::media::MediaAction::from_str(action) {
                 crate::media::send(a);
             }
+        }
+        "update" => {
+            // Downloading blocks; the menu handler runs on the main thread.
+            let app = app.clone();
+            tauri::async_runtime::spawn(async move {
+                if crate::update::update_pending() {
+                    if let Err(e) = crate::update::install(app.clone()).await {
+                        eprintln!("[PixelPaw] update failed: {e}");
+                        let _ = app.emit("update:failed", e);
+                    }
+                } else if crate::update::check_for_update(app.clone()).await == Ok(None) {
+                    let _ = app.emit("update:none", ());
+                }
+            });
         }
         "settings" => open_window(app, "settings", "PixelPaw Settings", 520.0, 700.0),
         "chat" => open_window(app, "chat", "Chat with PixelPaw", 460.0, 620.0),

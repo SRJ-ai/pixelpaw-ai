@@ -1,0 +1,11 @@
+{
+  "version": "0.2.1",
+  "notes": "- Updates. Every release before this one only reached people who happened to\n  revisit the download page. The app now checks shortly after launch, the pet\n  says so if there's a newer version, and the right-click menu changes from\n  *Check for updates* to *Install update…* when one is waiting.\n\n  The check, the download and the install all happen in Rust — the webview is\n  never involved, so no page script can start one. Builds are signed with a key\n  that never leaves the maintainer's machine, and the app refuses anything that\n  doesn't verify against the public half compiled into it. A compromised host\n  still could not push a binary.",
+  "pub_date": "2026-08-13T11:08:15.015Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTWZCVjFWV21hQ0cyNWdCZ0I2YUpNbFZ1WlRPcXBBcHJYNCtsTERnbUEvVk9zVndQVjNOVUViSDZoTlBEdjV5NHltOXFvcEVaQmdVb3ZZM0JOY3piOUFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjE5MjY0CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjFfeDY0LXNldHVwLmV4ZQpSWUhYQ0d6TEZteHZHYzBuRXdGOXpKdEhKRzlQZnpYcTJMZ0Z6UXU5VnJleHVEN3ByR3FOT3NzRjVXU0E0YmphWjFXV1pKYi9JZ2gxMDJSMFNxV2JEUT09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.1/PixelPaw.AI_0.2.1_x64-setup.exe"
+    }
+  }
+}

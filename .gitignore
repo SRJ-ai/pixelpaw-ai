@@ -18,6 +18,11 @@ npm-debug.log*
 .env
 .env.*
 !.env.example
+# Updater signing keys. The private half lives in ~/.pixelpaw/updater.key and
+# must never enter the repo — anyone holding it can sign an update that every
+# install will accept and run. Only the public half belongs in tauri.conf.json.
+*.key
+!*.pub
 # Local data
 *.sqlite
 *.sqlite-*

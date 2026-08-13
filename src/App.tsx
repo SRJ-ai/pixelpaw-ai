@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { emit, listen } from "@tauri-apps/api/event";
+import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { subscribeUpdate } from "./platform/inputBridge";
 import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
 import { MediaPill, type UiBox } from "./pet/render/MediaPill";
@@ -117,6 +118,27 @@ export default function App() {
     };
     window.addEventListener("contextmenu", onContextMenu);
     return () => window.removeEventListener("contextmenu", onContextMenu);
+  }, []);
+
+  /**
+   * A new version exists. Rust found it, downloads it and installs it; all the
+   * pet does is mention it — otherwise the menu item announcing an update is
+   * something you'd only see by going looking for it.
+   */
+  useEffect(() => {
+    let unlisten: UnlistenFn[] = [];
+    const announce = (text: string, ms: number, cue: Parameters<typeof playCue>[0]) => {
+      setSay({ text, tone: "notice" });
+      playCue(cue);
+      window.clearTimeout(sayTimer.current);
+      sayTimer.current = window.setTimeout(() => setSay(null), ms);
+    };
+    subscribeUpdate(
+      (v) => announce(t("pet.updateReady", { v }), 6000, "chime"),
+      () => announce(t("pet.updateNone"), 2600, "pop"),
+      () => announce(t("pet.updateFailed"), 4000, "error")
+    ).then((u) => (unlisten = u));
+    return () => unlisten.forEach((u) => u());
   }, []);
 
   // Launching the app again surfaces the pet that's already running; say so,

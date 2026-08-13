@@ -23,6 +23,7 @@ mod media;
 mod menu;
 mod notify;
 mod tray;
+mod update;
 mod window;
 
 use tauri::{Emitter, Listener, Manager};
@@ -59,6 +60,7 @@ pub fn run() {
             // shortcut visibly does *something* instead of appearing to fail.
             let _ = app.emit("app:second-instance", ());
         }))
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             media::media_control,
             ai::ai_chat,
@@ -72,6 +74,7 @@ pub fn run() {
             menu::open_pet_menu,
             menu::open_settings,
             menu::quit_app,
+            update::check_for_update,
         ])
         // One handler for both sources: tray menu clicks and the pet's
         // right-click popup arrive here alike.
@@ -103,6 +106,9 @@ pub fn run() {
             // Watches which window has focus, so the pet can park beside the
             // agent you are actually talking to.
             dock::spawn(handle.clone());
+
+            // Ask once, a little after launch, whether there is a newer build.
+            update::spawn(handle.clone());
 
             // The UI mirrors the pet's visual scale so click-through hit-testing
             // matches what's actually drawn.

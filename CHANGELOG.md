@@ -3,6 +3,21 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.1 — 13 August 2026
+
+### Added
+
+- **Updates.** Every release before this one only reached people who happened to
+  revisit the download page. The app now checks shortly after launch, the pet
+  says so if there's a newer version, and the right-click menu changes from
+  *Check for updates* to *Install update…* when one is waiting.
+
+  The check, the download and the install all happen in Rust — the webview is
+  never involved, so no page script can start one. Builds are signed with a key
+  that never leaves the maintainer's machine, and the app refuses anything that
+  doesn't verify against the public half compiled into it. A compromised host
+  still could not push a binary.
+
 ## 0.2.0 — 13 August 2026
 
 ### Added

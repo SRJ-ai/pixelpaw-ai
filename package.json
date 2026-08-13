@@ -1,7 +1,7 @@
 {
   "name": "pixelpaw-ai",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "PixelPaw AI - an original intelligent desktop companion.",
   "scripts": {
@@ -12,7 +12,8 @@
     "app:dev": "tauri dev",
     "app:build": "tauri build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "manifest": "node scripts/manifest.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",

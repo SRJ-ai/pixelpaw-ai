@@ -50,6 +50,23 @@ export function subscribeAgent(
   );
 }
 
+/**
+ * A newer version exists. Rust does the checking, downloading and installing;
+ * the UI's only job is to mention it, so the user knows the menu item is worth
+ * clicking rather than having to go looking.
+ */
+export function subscribeUpdate(
+  onAvailable: (version: string) => void,
+  onNone: () => void,
+  onFailed: (reason: string) => void
+): Promise<UnlistenFn[]> {
+  return Promise.all([
+    listen<{ version: string }>("update:available", (e) => onAvailable(e.payload.version)),
+    listen("update:none", () => onNone()),
+    listen<string>("update:failed", (e) => onFailed(e.payload)),
+  ]);
+}
+
 /** Where the pet should park while a coding agent's window has focus (§21). */
 export interface DockTarget {
   x: number;

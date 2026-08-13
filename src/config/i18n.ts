@@ -259,6 +259,15 @@ const STRINGS = {
   "set.disconnect": { en: "Disconnect", te: "తీసివేయి" },
   "set.connected": { en: "Connected", te: "కలిపి ఉంది" },
   "pet.dockedTo": { en: "Watching {app} 👀", te: "{app} చూస్తున్నా 👀" },
+  "pet.updateReady": {
+    en: "Version {v} is ready — right-click me to install ✨",
+    te: "వెర్షన్ {v} సిద్ధం — ఇన్‌స్టాల్ చేయడానికి నాపై రైట్-క్లిక్ చెయ్యి ✨",
+  },
+  "pet.updateNone": { en: "You're on the newest one 👍", te: "నువ్వు కొత్త వెర్షన్‌లోనే ఉన్నావ్ 👍" },
+  "pet.updateFailed": {
+    en: "Update didn't go through. It'll try again next time.",
+    te: "అప్‌డేట్ కాలేదు. తర్వాతిసారి మళ్లీ ప్రయత్నిస్తా.",
+  },
   "set.dockToAgent": { en: "Sit beside my coding agent", te: "నా కోడింగ్ ఏజెంట్ పక్కన కూర్చో" },
   "set.note.dock": {
     en: "When a Claude Code, Codex or editor window takes focus, the pet moves above its input box and goes back afterwards.",
