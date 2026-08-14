@@ -22,6 +22,16 @@ export function subscribePomodoro(cb: () => void): Promise<UnlistenFn> {
   return listen("tray:pomodoro", () => cb());
 }
 
+/** Chat asked the pet to do something ("dance", "sleep"). */
+export function subscribeAct(cb: (state: string) => void): Promise<UnlistenFn> {
+  return listen<string>("pet:act", (e) => cb(e.payload));
+}
+
+/** Menu "Focus mode" -> quiet the pet without hiding it (§37). */
+export function subscribeFocus(cb: () => void): Promise<UnlistenFn> {
+  return listen("tray:focus", () => cb());
+}
+
 /** Tray "Peek Mode" -> tuck to / restore from a screen edge. */
 export function subscribePeek(cb: () => void): Promise<UnlistenFn> {
   return listen("tray:peek", () => cb());

@@ -6,7 +6,7 @@ import { loadOnboarding, markSeen, planOnboarding } from "./pet/behaviors/onboar
 import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
 import { MediaPill, type UiBox } from "./pet/render/MediaPill";
-import { AttentionBadge, PinnedNote, PomodoroTimer } from "./pet/render/PetOverlays";
+import { AttentionBadge, FocusChip, PinnedNote, PomodoroTimer } from "./pet/render/PetOverlays";
 import { PaperScroll } from "./pet/render/PaperScroll";
 import { SpeechBubble } from "./pet/render/SpeechBubble";
 import { BreakBurst } from "./pet/render/BreakBurst";
@@ -54,6 +54,9 @@ export default function App() {
   const [pomo, setPomo] = useState({ active: false, phase: "focus" as "focus" | "break", remainingMs: 0 });
   /** Which agent is blocked on the user. Held until cleared, never on a timer. */
   const [waitingOn, setWaitingOn] = useState("");
+  /** Quiet mode. Shown, or the toggle has no visible effect until a nudge
+   *  fails to arrive — which is indistinguishable from it not working. */
+  const [focus, setFocus] = useState(false);
   const pillTimer = useRef<number | undefined>(undefined);
   const sayTimer = useRef<number | undefined>(undefined);
   const burstTimer = useRef<number | undefined>(undefined);
@@ -70,6 +73,7 @@ export default function App() {
       (status) => {
         setPomo(status.pomo);
         setWaitingOn(status.waitingOn);
+        setFocus(status.focus);
       },
       (text, ms, tone = "chat") => {
         setSay({ text, tone });
@@ -266,6 +270,9 @@ export default function App() {
     >
       <PinnedNote text={settings.general.pinnedNote} />
       <AttentionBadge who={t("pet.needsYou", { who: waitingOn })} active={Boolean(waitingOn)} />
+      {/* Only when a Pomodoro isn't already showing its own countdown there —
+          the Pomodoro implies focus, so showing both would say it twice. */}
+      <FocusChip active={focus && !pomo.active} label={t("pet.focusChip")} />
       <PomodoroTimer
         active={pomo.active}
         phase={pomo.phase}

@@ -14,29 +14,40 @@ export type Species =
   | "fantasy";
 
 /** Animation states the state machine can be in (MVP subset of the full spec). */
-export type AnimState =
-  | "idle"
-  | "blink"
-  | "look"
-  | "walk"
-  | "sit"
-  | "sleep"
-  | "wake"
-  | "yawn"
-  | "stretch"
-  | "happy"
-  | "curious"
-  | "surprised"
-  | "petted"
-  | "purring"
-  | "dragged"
-  | "dizzy"
-  | "hunting"
-  | "kneading"
-  | "overheat"
-  | "hurt"
-  | "groom"
-  | "wiggle";
+/**
+ * Every state the rig can play. The type is derived from the list rather than
+ * written twice, so a state added here is immediately valid at runtime too —
+ * anything that accepts a state name from outside (the chat's "dance") needs to
+ * check it against something, and two hand-maintained copies would drift.
+ */
+export const ANIM_STATE_LIST = [
+  "idle",
+  "blink",
+  "look",
+  "walk",
+  "sit",
+  "sleep",
+  "wake",
+  "yawn",
+  "stretch",
+  "happy",
+  "curious",
+  "surprised",
+  "petted",
+  "purring",
+  "dragged",
+  "dizzy",
+  "hunting",
+  "kneading",
+  "overheat",
+  "hurt",
+  "groom",
+  "wiggle",
+] as const;
+
+export type AnimState = (typeof ANIM_STATE_LIST)[number];
+
+export const ANIM_STATES: ReadonlySet<string> = new Set(ANIM_STATE_LIST);
 
 export type Mouth = "neutral" | "smile" | "open" | "frown";
 

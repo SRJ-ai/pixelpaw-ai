@@ -162,6 +162,20 @@ export default function Settings() {
               onChange={(e) => patch((d) => (d.petName = e.target.value))}
             />
           </Row>
+          {/* Lives on `ai.userName` for storage reasons, but it belongs here:
+              the pet uses it for breaks, water and Pomodoro lines whether or
+              not the AI is switched on. Buried in the AI tab it went unset, so
+              every named line silently fell back to the generic one. */}
+          <Row label={t("set.yourName")}>
+            <input
+              className="set-input"
+              value={s.ai.userName}
+              maxLength={24}
+              placeholder={t("set.optional")}
+              onChange={(e) => patch((d) => (d.ai.userName = e.target.value))}
+            />
+          </Row>
+          <p className="set-note">{t("set.note.yourName")}</p>
         </Section>
 
         <Section title={t("set.section.appearance")}>
@@ -523,9 +537,6 @@ export default function Settings() {
             <select className="set-input" value={s.ai.language} onChange={(e) => patch((d) => (d.ai.language = e.target.value as LanguageId))}>
               {LANGUAGES.map((l) => (<option key={l.id} value={l.id}>{l.label}</option>))}
             </select>
-          </Row>
-          <Row label={t("set.yourName")}>
-            <input className="set-input" value={s.ai.userName} placeholder={t("set.optional")} onChange={(e) => patch((d) => (d.ai.userName = e.target.value))} />
           </Row>
           <p className="set-note">{t("set.note.openChat")}</p>
         </Section>

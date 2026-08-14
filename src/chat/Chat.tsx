@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { PixelCat } from "@/pet/render/PixelCat";
 import { characterById } from "@/config/characters";
 import { t } from "@/config/i18n";
-import { loadSettings } from "@/config/settings";
+import { loadSettings, saveSettings } from "@/config/settings";
+import { emit } from "@tauri-apps/api/event";
+import { parseCommand } from "./commands";
 import { chat, providerInfo, type ChatMessage } from "@/ai/client";
 import { memoryBlock } from "@/ai/memory";
 import { systemPrompt } from "@/ai/personality";
@@ -36,11 +38,70 @@ export default function Chat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [turns, busy]);
 
+  /**
+   * Handle the things the pet can do itself, and say so.
+   *
+   * Runs before the AI because it must work when the AI is off — which is the
+   * default. Setting a reminder should not require an API key.
+   */
+  function runLocally(text: string): string | null {
+    const cmd = parseCommand(text);
+    if (!cmd) return null;
+    const current = loadSettings();
+
+    switch (cmd.kind) {
+      case "reminder": {
+        current.reminders.push({
+          id: crypto.randomUUID(),
+          title: cmd.title,
+          time: cmd.time,
+          recurrence: cmd.recurrence,
+          enabled: true,
+        });
+        void saveSettings(current);
+        const who = current.ai.userName.trim();
+        return t(cmd.recurrence === "once" ? "chat.remindSet" : "chat.remindSetRepeat", {
+          title: cmd.title,
+          time: cmd.time,
+          every: t(`chat.every.${cmd.recurrence}` as never),
+          who: who || t("chat.you"),
+        });
+      }
+      case "name": {
+        current.ai.userName = cmd.name;
+        void saveSettings(current);
+        return t("chat.nameSet", { name: cmd.name });
+      }
+      case "act": {
+        // The pet lives in another window, so this goes over the same event bus
+        // the tray uses rather than through the engine directly.
+        void emit("pet:act", cmd.state);
+        return t("chat.acting", { word: cmd.word });
+      }
+      case "list": {
+        const on = current.reminders.filter((r) => r.enabled);
+        if (on.length === 0) return t("chat.remindNone");
+        return (
+          t("chat.remindList") +
+          "\n" +
+          on.map((r) => `• ${r.time} — ${r.title}`).join("\n")
+        );
+      }
+    }
+  }
+
   /** `preset` lets an empty-state suggestion send without typing it first. */
   async function send(preset?: string) {
     const text = (preset ?? input).trim();
     if (!text || busy) return;
     setInput("");
+
+    const handled = runLocally(text);
+    if (handled) {
+      setTurns([...turns, { role: "user", content: text }, { role: "assistant", content: handled }]);
+      return;
+    }
+
     const history: Turn[] = [...turns, { role: "user", content: text }];
     setTurns([...history, { role: "assistant", content: "" }]);
     setBusy(true);

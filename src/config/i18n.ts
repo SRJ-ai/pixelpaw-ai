@@ -20,7 +20,7 @@ type Phrase = { en: string; te: string };
 const STRINGS = {
   // ---------------------------------------------------------- pet speech
   "pet.break": { en: "Break time! Stretch a bit 🐾", te: "విరామం! కాసేపు ఒళ్ళు విరుచుకో 🐾" },
-  "pet.water": { en: "Water break! Sip some water 💧", te: "నీళ్ళ విరామం! కాస్త నీళ్ళు తాగు 💧" },
+  "pet.water": { en: "{time} — sip some water 💧", te: "{time} — కాస్త నీళ్ళు తాగు 💧" },
   // Named variants, used when the user has told the pet their name. Written as
   // separate phrases rather than a prefix so each language can put the name
   // where it actually belongs in the sentence.
@@ -29,8 +29,8 @@ const STRINGS = {
     te: "{name}, విరామం! కాసేపు ఒళ్ళు విరుచుకో 🐾",
   },
   "pet.waterNamed": {
-    en: "{name}, sip some water 💧",
-    te: "{name}, కాస్త నీళ్ళు తాగు 💧",
+    en: "{time} — {name}, sip some water 💧",
+    te: "{time} — {name}, కాస్త నీళ్ళు తాగు 💧",
   },
   "pet.focusStartNamed": {
     en: "Focus time, {name} — let's go 🐾",
@@ -265,6 +265,37 @@ const STRINGS = {
   "pet.welcomeAgent": {
     en: "I found {agent}. I can react when it finishes — Settings → AI 🔌",
     te: "{agent} కనిపించింది. అది పూర్తయితే నేను స్పందిస్తా — Settings → AI 🔌",
+  },
+  "set.note.yourName": {
+    en: "Used in breaks, water nudges and Pomodoro lines — and by the AI companion if you turn it on.",
+    te: "విరామాలు, నీళ్ళ గుర్తులు, పొమొడోరో లైన్లలో వాడతాం — AI ఆన్ చేస్తే అది కూడా వాడుతుంది.",
+  },
+  "pet.reminderNamed": {
+    en: "⏰ Hey {name} — {title}",
+    te: "⏰ ఏయ్ {name} — {title}",
+  },
+  "chat.you": { en: "you", te: "నువ్వు" },
+  "chat.remindSet": {
+    en: "Set — I'll tell {who} at {time}: {title} ⏰",
+    te: "సెట్ అయింది — {time} కి {who} కి చెప్తా: {title} ⏰",
+  },
+  "chat.remindSetRepeat": {
+    en: "Set — {every} at {time} I'll tell {who}: {title} ⏰",
+    te: "సెట్ అయింది — {every} {time} కి {who} కి చెప్తా: {title} ⏰",
+  },
+  "chat.every.once": { en: "once", te: "ఒకసారి" },
+  "chat.every.daily": { en: "every day", te: "రోజూ" },
+  "chat.every.weekdays": { en: "on weekdays", te: "పనిదినాల్లో" },
+  "chat.remindNone": { en: "Nothing scheduled. Try “remind me at 5pm to call mum”.", te: "ఏమీ షెడ్యూల్ లేదు. “remind me at 5pm to call mum” అని ప్రయత్నించు." },
+  "chat.remindList": { en: "You've got:", te: "నీకు ఇవి ఉన్నాయి:" },
+  "chat.nameSet": { en: "Nice to meet you, {name}! I'll use it from now on 🐾", te: "నిన్ను కలవడం సంతోషం, {name}! ఇక నుంచి అదే పిలుస్తా 🐾" },
+  "chat.acting": { en: "*{word}s*", te: "*{word} చేస్తోంది*" },
+  "pet.focusChip": { en: "FOCUS", te: "ఫోకస్" },
+  "pet.focusOn": { en: "Focus mode — I'll keep quiet 🤫", te: "ఫోకస్ మోడ్ — నేను నిశ్శబ్దంగా ఉంటా 🤫" },
+  "pet.focusOff": { en: "Back to normal 🐾", te: "మామూలుగా వచ్చేశా 🐾" },
+  "pet.focusPomodoro": {
+    en: "Already focusing — the Pomodoro has it",
+    te: "ఇప్పటికే ఫోకస్‌లో ఉన్నా — పొమొడోరో నడుస్తోంది",
   },
   "pet.needsYou": { en: "{who} needs you", te: "{who} నీ కోసం ఆగింది" },
   "pet.dockedTo": { en: "Watching {app} 👀", te: "{app} చూస్తున్నా 👀" },

@@ -56,6 +56,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let recenter = MenuItem::with_id(app, "recenter", "Recenter", true, None::<&str>)?;
     let peek = MenuItem::with_id(app, "peek", "Peek Mode (toggle)", true, None::<&str>)?;
     let pomodoro = MenuItem::with_id(app, "pomodoro", "Pomodoro (toggle)", true, None::<&str>)?;
+    let focus = MenuItem::with_id(app, "focus", "Focus mode (toggle)", true, None::<&str>)?;
     let take_break = MenuItem::with_id(app, "take_break", "Take a break", true, None::<&str>)?;
     let water = MenuItem::with_id(app, "water", "Drink water", true, None::<&str>)?;
     let sep_media = PredefinedMenuItem::separator(app)?;
@@ -83,7 +84,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     Menu::with_items(
         app,
         &[
-            &show, &hide, &pause, &resume, &recenter, &peek, &pomodoro, &take_break, &water,
+            &show, &hide, &pause, &resume, &recenter, &peek, &pomodoro, &focus, &take_break, &water,
             &sep_media, &media_prev, &media_play, &media_next, &vol_down, &vol_up, &vol_mute, &sep,
             &chat, &games, &settings, &update, &sep2, &quit,
         ],
@@ -118,6 +119,9 @@ pub fn handle(app: &AppHandle, id: &str) {
         }
         "pomodoro" => {
             let _ = app.emit("tray:pomodoro", ());
+        }
+        "focus" => {
+            let _ = app.emit("tray:focus", ());
         }
         "take_break" => {
             let _ = app.emit("tray:break", ());

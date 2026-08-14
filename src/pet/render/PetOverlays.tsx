@@ -64,6 +64,22 @@ export function AttentionBadge({ who, active }: { who: string; active: boolean }
   );
 }
 
+/**
+ * Focus mode is on. Shares the Pomodoro timer's slot and material, because it
+ * is the same idea — the pet is in a working mode — and a second bespoke chip
+ * would just be the timer with different words in it.
+ */
+export function FocusChip({ active, label }: { active: boolean; label: string }) {
+  return (
+    <div className={"pp-timer focus" + (active ? " show" : "")} role="status" aria-hidden={!active}>
+      <span className="pp-timer-phase">{label}</span>
+      <span className="pp-timer-clock" aria-hidden="true">
+        🤫
+      </span>
+    </div>
+  );
+}
+
 export function PinnedNote({ text }: { text: string }) {
   const shown = text.trim();
   return (

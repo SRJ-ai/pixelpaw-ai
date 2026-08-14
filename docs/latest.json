@@ -1,11 +1,11 @@
 {
-  "version": "0.2.5",
-  "notes": "- The \"needs you\" badge floated away from the pet. It was pinned to the top\n  of the pet's window, which sounds right and isn't: the cat only fills the\n  bottom 45% of that window at the default size, so the badge sat roughly 113\n  pixels clear of the animal. On a desktop that reads as a stray label\n  belonging to nothing rather than as the pet asking for you. It now sits just\n  above the head, where the eye already goes.\n\n  Beside the body was the obvious alternative and it does not work — that\n  leaves about 80 pixels of clear width, too narrow for a label worth reading.\n  Three things now want that strip above the head, so they queue: the badge\n  steps up when a bubble or scroll passes through, and higher again when the\n  media pill is out. The badge is the standing one, so the passing things go in\n  front.",
-  "pub_date": "2026-08-13T15:34:20.983Z",
+  "version": "0.2.6",
+  "notes": "- Talk to the pet instead of filling in a form. Reminders already worked but\n  the only way to add one was Settings → Reminders → Add → three fields, which\n  nobody does mid-task. In the chat window:\n\n  ```\n  remind me at 5pm to call mum\n  remind me at 7am to stretch every day\n  what reminders do I have\n  my name is Vamsi\n  dance / sleep / sit / stretch / wake up\n  ```\n\n  These run *before* the AI, not through it — the AI is off by default and needs\n  a key or a CLI, so routing them through it would mean the most useful thing in\n  that window only worked for people who had configured something else. They\n  cost nothing and cannot hallucinate a time. A phrase with no readable time\n  creates nothing rather than guessing an hour.\n\n- Reminders address you by name: `⏰ Hey Vamsi — call mum`.\n\n- Three more characters. Emberling, a small dragon with horns, wings and a\n  spined tail — the fourth ",
+  "pub_date": "2026-08-14T12:02:41.327Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVhaanFqT240UzNMSXAzNThrSlhWWTI2aHovNElsZzVkbDVaRms5a3JDbzMxb2VieUpzWnRxZjNoNnUwd1c1MDdhcmRtaDhnUzQvVUMzS2orQXAvR1F3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NjM1MjA0CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjVfeDY0LXNldHVwLmV4ZQpsVHl1dmtiZzJsWEVSMkFodDNNRVNyKzRiQ054RnFtaDd4bXVIdms2Tk0xTWxxQVlpdFRwTzRZUEM1c0JFVlh2U0RBdDlmb0dtdytIYTNmc2ZFUldCZz09Cg==",
-      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.5/PixelPaw.AI_0.2.5_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTVZOTHRLc3JqcTUvYThQV0NHN2krRTZ0c3Mrb01raEFsbTExdDRVdCtiQ1B4MVBzVHdzc1NEUHNTN216d2hZRHliUzVVKzZSaUgyd3pTMzg1NEczaFFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NzA4OTAzCWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjZfeDY0LXNldHVwLmV4ZQpnazZIYUw4SHpPNmQ2b25qdHAyYXN2N1pYOTFnaHU1UVRlVFM0N0x2Q01XNkZkLzRSSkxpYTk4dTBDMWNrZ0FOQy9yZHFaQkpJOEIwcXNnbTZORjBBZz09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.6/PixelPaw.AI_0.2.6_x64-setup.exe"
     }
   }
 }

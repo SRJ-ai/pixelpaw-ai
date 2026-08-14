@@ -45,6 +45,7 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
   const teluguBadge = !isLatin(badge);
   const isCat = species === "cat";
   const isPanda = species === "panda";
+  const isDragon = species === "dragon";
   // On the panda, patternColor is the marking colour: ears, eye patches and
   // paws are all the same black, which is what makes the animal readable at
   // 100px on a wallpaper.
@@ -83,6 +84,15 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           <stop offset="50%" stopColor="#ff5ca8" />
           <stop offset="100%" stopColor="#7a5cff" />
         </linearGradient>
+        {/* Only defined when worn: the colour comes from the character, so the
+            gradient cannot be a static one in the sheet. */}
+        {acc.aura && (
+          <radialGradient id="pp-aura" cx="50%" cy="55%" r="50%">
+            <stop offset="45%" stopColor={acc.aura} stopOpacity="0" />
+            <stop offset="80%" stopColor={acc.aura} stopOpacity="0.42" />
+            <stop offset="100%" stopColor={acc.aura} stopOpacity="0" />
+          </radialGradient>
+        )}
       </defs>
 
       {/* -------- AMBIENT COSMIC DECOR (behind the pet) -------- */}
@@ -106,6 +116,8 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
 
       {/* -------- BODY (everything that squashes/stretches together) -------- */}
       <g id={PART.body} style={originFeet as React.CSSProperties}>
+        {/* Summoner's aura, behind the whole body. */}
+        {acc.aura && <ellipse cx="50" cy="62" rx="42" ry="40" fill="url(#pp-aura)" style={{ pointerEvents: "none" }} />}
         {/* Cape (behind everything) */}
         {acc.cape && (
           <g>
@@ -121,6 +133,16 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           </g>
         )}
 
+        {/* Mage's staff, worn at the side like the katana. */}
+        {acc.staff && (
+          <g transform="rotate(-8 16 60)">
+            <line x1="16" y1="30" x2="16" y2="88" stroke="#6b4f2a" strokeWidth="3.4" strokeLinecap="round" />
+            <circle cx="16" cy="27" r="5.4" fill={acc.staff} opacity="0.35" />
+            <circle cx="16" cy="27" r="3.4" fill={acc.staff} />
+            <circle cx="14.6" cy="25.6" r="1.1" fill="#fffdf2" />
+          </g>
+        )}
+
         {/* Sheathed katana, worn at the side (clearly visible left of the body) */}
         {acc.katana && (
           <g transform="rotate(-10 16 62)">
@@ -128,6 +150,28 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
             <line x1="16" y1="40" x2="16" y2="30" stroke="#7a5b34" strokeWidth="3.6" strokeLinecap="round" />
             <line x1="11" y1="40" x2="21" y2="40" stroke="#d9b45a" strokeWidth="2.6" strokeLinecap="round" />
             <circle cx="16" cy="29" r="1.8" fill="#c0392b" />
+          </g>
+        )}
+
+        {/* Dragon wings, behind everything. Drawn with the tail so they sit
+            under the torso and read as attached to the back rather than pasted
+            over the belly. */}
+        {isDragon && (
+          <g>
+            <path
+              d="M33 54 Q11 32 5 47 Q13 50 9 60 Q19 57 24 66 Q28 60 34 64 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+            <path
+              d="M67 54 Q89 32 95 47 Q87 50 91 60 Q81 57 76 66 Q72 60 66 64 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+            <path d="M31 57 Q17 43 12 50 Q20 53 18 59 Q25 57 30 62 Z" fill={a.innerEarColor} opacity="0.55" />
+            <path d="M69 57 Q83 43 88 50 Q80 53 82 59 Q75 57 70 62 Z" fill={a.innerEarColor} opacity="0.55" />
           </g>
         )}
 
@@ -154,6 +198,26 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
             // behind the torso, so this reads as a stub peeking out — at cx 77
             // it cleared the silhouette entirely and looked like a stray dot.
             <ellipse cx="73" cy="78" rx="5.5" ry="5" fill={a.bellyColor} stroke={OUTLINE} strokeWidth={1} />
+          )}
+          {isDragon && (
+            <>
+              <path
+                d="M74 82 Q95 80 90 56 Q88 48 82 51 Q89 64 73 75 Z"
+                fill={a.bodyColor}
+                stroke={OUTLINE}
+                strokeWidth={1}
+              />
+              {/* Spines along the tail's outer edge — what separates a dragon
+                  tail from a cat tail at this size. */}
+              <path
+                d="M90 56 l5 -4 l-2 7 l5 -1 l-4 7 l4 1 l-6 5"
+                fill="none"
+                stroke={a.patternColor}
+                strokeWidth={2.4}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+              />
+            </>
           )}
         </g>
 
@@ -185,6 +249,18 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
               <circle cx="31" cy="28" r="4.6" fill={a.innerEarColor} />
             </>
           )}
+          {isDragon && (
+            // Swept-back horn. Occupies the ear slot so the ear-flick animation
+            // gives it a little twitch, which turns out to read as charming
+            // rather than wrong.
+            <path
+              d="M34 36 Q27 22 20 14 Q30 18 37 34 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+              strokeLinejoin="round"
+            />
+          )}
         </g>
         <g id={PART.earR} style={originFeet as React.CSSProperties}>
           {species === "cat" && (
@@ -210,7 +286,31 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
               <circle cx="69" cy="28" r="4.6" fill={a.innerEarColor} />
             </>
           )}
+          {isDragon && (
+            <path
+              d="M66 36 Q73 22 80 14 Q70 18 63 34 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+              strokeLinejoin="round"
+            />
+          )}
         </g>
+
+        {/* Mage hood, over the ears. */}
+        {acc.hood && (
+          <g>
+            <path
+              d="M24 46 Q26 16 50 9 Q74 16 76 46 Q63 38 50 38 Q37 38 24 46 Z"
+              fill={acc.hood}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+            {/* The peak flops forward — a straight cone reads as a traffic cone. */}
+            <path d="M50 9 Q58 4 64 8 Q59 12 52 13 Z" fill={acc.hood} stroke={OUTLINE} strokeWidth={0.8} />
+            <path d="M24 46 Q37 38 50 38 Q63 38 76 46 L76 49 Q63 41 50 41 Q37 41 24 49 Z" fill="#00000033" />
+          </g>
+        )}
 
         {/* Robot antenna (on top of head) */}
         {acc.antenna && (
@@ -369,9 +469,22 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         <ellipse id={PART.blushR} cx="69" cy="60" rx="4" ry="2.4" fill="#ff9db0" opacity="0" />
 
         {/* Muzzle — the dog's snout is the other half of its silhouette; the
-            ears alone still read feline without it. */}
+            ears alone still read feline without it. The dragon gets one too,
+            slightly narrower, so the face isn't just a cat with horns. */}
         {species === "dog" && (
           <ellipse cx="50" cy="66.5" rx="13" ry="7" fill={a.bellyColor} opacity="0.9" />
+        )}
+        {isDragon && (
+          <>
+            <ellipse cx="50" cy="66" rx="11" ry="6.5" fill={a.bellyColor} opacity="0.85" />
+            {/* Brow ridges: a small mean angle over each eye. */}
+            <path
+              d="M31 45 L45 48 M69 45 L55 48"
+              stroke={a.patternColor}
+              strokeWidth={2.2}
+              strokeLinecap="round"
+            />
+          </>
         )}
 
         {/* Nose. A cat's is a small triangle; the other two are rounded and
@@ -401,6 +514,20 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           <path d="M44 72 Q50 65 56 72" />
         </g>
       </g>
+
+      {/* Floating sigil. Outside the body group so it hovers steadily instead of
+          squashing with the pet. The geometry is invented — a hexagon, a
+          triangle and three ticks — not any real or fictional script. */}
+      {acc.rune && (
+        <g className="pp-rune" stroke={acc.rune} fill="none" strokeWidth="1.4" strokeLinejoin="round">
+          <g transform="translate(50 14)">
+            <path d="M0 -9 L7.8 -4.5 L7.8 4.5 L0 9 L-7.8 4.5 L-7.8 -4.5 Z" opacity="0.9" />
+            <path d="M0 -4.6 L4 2.4 L-4 2.4 Z" opacity="0.75" />
+            <path d="M0 -12.5 v2.2 M10.8 -6.2 l1.9 -1.1 M10.8 6.2 l1.9 1.1" strokeLinecap="round" opacity="0.6" />
+            <circle r="1.5" fill={acc.rune} stroke="none" opacity="0.9" />
+          </g>
+        </g>
+      )}
 
       {/* -------- FLOATING EFFECTS (not affected by body squash) -------- */}
       <g id={PART.fxHearts} style={{ opacity: 0 }}>

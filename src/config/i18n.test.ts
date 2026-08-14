@@ -78,6 +78,19 @@ describe("t", () => {
     }
   });
 
+  it("keeps the clock on the water nudge in every language", () => {
+    // The whole point of that line is telling you when. A translation that
+    // drops {time} looks fine in review and silently loses the feature.
+    for (const lang of UI_LANGUAGES) {
+      setUiLang(lang.id);
+      expect(t("pet.water", { time: "3:45 pm" })).toContain("3:45 pm");
+      const named = t("pet.waterNamed", { name: "Vamsi", time: "3:45 pm" });
+      expect(named).toContain("3:45 pm");
+      expect(named).toContain("Vamsi");
+      expect(named).not.toContain("{");
+    }
+  });
+
   it("offers a translation for every advertised language", () => {
     for (const lang of UI_LANGUAGES) {
       setUiLang(lang.id);

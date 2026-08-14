@@ -7,7 +7,7 @@ import {
 import { PhysicalPosition } from "@tauri-apps/api/dpi";
 import type { UnlistenFn } from "@tauri-apps/api/event";
 
-import type { AnimState, PetNeeds } from "@/types/pet";
+import { ANIM_STATES, type AnimState, type PetNeeds } from "@/types/pet";
 import { StateMachine } from "./animation/stateMachine";
 import { Animator } from "./animation/animator";
 import { IdleDirector } from "./behaviors/idle";
@@ -21,6 +21,8 @@ import {
   subscribeScroll,
   subscribeBreak,
   subscribePomodoro,
+  subscribeFocus,
+  subscribeAct,
   subscribePeek,
   subscribeWater,
   subscribeAgent,
@@ -108,6 +110,8 @@ export interface EngineStatus {
    * keep showing it rather than being told once.
    */
   waitingOn: string;
+  /** Quiet mode: no nudges, no dozing, no wandering (§37). */
+  focus: boolean;
 }
 
 /**
@@ -243,6 +247,8 @@ export class PetEngine {
     this.unlisten.push(await subscribeScroll((d) => this.onScroll(d)));
     this.unlisten.push(await subscribeBreak(() => this.triggerBreak(performance.now())));
     this.unlisten.push(await subscribePomodoro(() => this.togglePomodoro(performance.now())));
+    this.unlisten.push(await subscribeFocus(() => this.toggleFocus(performance.now())));
+    this.unlisten.push(await subscribeAct((s) => this.onAct(s)));
     this.unlisten.push(await subscribePeek(() => void this.togglePeek()));
     this.unlisten.push(await subscribeWater(() => this.triggerWater(performance.now())));
     this.unlisten.push(await subscribeAgent((agent, status) => this.onAgent(agent, status)));
@@ -314,7 +320,11 @@ export class PetEngine {
    */
   private say(key: NamedLine, ms: number, cue: SoundCue) {
     const name = this.settings.ai.userName.trim();
-    this.announce(name ? t(NAMED[key], { name }) : t(key), ms, cue);
+    // `time` is passed to every named line and used only by the ones whose
+    // phrase asks for it — a nudge to drink water reads better with the clock
+    // on it, a Pomodoro celebration does not. Unused placeholders cost nothing.
+    const time = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    this.announce(name ? t(NAMED[key], { name, time }) : t(key, { time }), ms, cue);
   }
 
   /**
@@ -950,7 +960,14 @@ export class PetEngine {
 
       this.firedToday.set(r.id, today);
       this.sm.request("surprised", now);
-      this.announce(`⏰ ${r.title}`, 5200, "nudge");
+      // Addressed to you by name when you've given one. A reminder is the one
+      // line where being spoken to directly is the point.
+      const who = this.settings.ai.userName.trim();
+      this.announce(
+        who ? t("pet.reminderNamed", { name: who, title: r.title }) : `⏰ ${r.title}`,
+        5200,
+        "nudge"
+      );
       this.onBreak?.(); // reuse the attention-grabbing flourish
       this.onReminderFired?.(r.id, today);
     }
@@ -970,7 +987,48 @@ export class PetEngine {
     this.announce(`📝 ${pick.text}`, 4200, "nudge");
   }
 
-  // ---- Pomodoro (§36) + Focus (§37) ----
+  /**
+   * Told to do something from the chat window ("dance", "sleep").
+   *
+   * Goes through the state machine rather than round it, so an asked-for
+   * behaviour obeys the same priorities as a spontaneous one — being dragged
+   * still wins over dancing, which is what anyone would expect.
+   */
+  private onAct(state: string) {
+    if (!ANIM_STATES.has(state)) return;
+    this.sm.request(state as AnimState, performance.now());
+  }
+
+  // ---- Focus (§37) ----
+  /**
+   * Quiet the pet without hiding it.
+   *
+   * `focusMode` already gated water nudges, task nudges, dozing and the livelier
+   * idle behaviours — but nothing could switch it on except starting a
+   * Pomodoro, so a documented feature had no control anywhere. The machinery
+   * was all here; only the switch was missing.
+   *
+   * Distinct from Pause, which stops the pet reacting at all. Focus keeps it
+   * alive and watching, just not chatty.
+   */
+  private toggleFocus(now: number) {
+    // A Pomodoro owns focus for its duration; letting a menu click desync the
+    // two would leave focus stuck on after the session ends.
+    if (this.pomo.active) {
+      this.chat(t("pet.focusPomodoro"), 2600, "pop");
+      return;
+    }
+    this.focusMode = !this.focusMode;
+    this.flushStatus();
+    if (this.focusMode) {
+      this.sm.request("sit", now);
+      this.announce(t("pet.focusOn"), 2600, "chime");
+    } else {
+      this.chat(t("pet.focusOff"), 2200, "pop");
+    }
+  }
+
+  // ---- Pomodoro (§36) ----
   private togglePomodoro(now: number) {
     if (this.pomo.active) this.stopPomodoro();
     else this.startPomodoro(now);
@@ -1161,6 +1219,7 @@ export class PetEngine {
         remainingMs: Math.max(0, this.pomo.endsAt - now),
       },
       waitingOn: this.waitingOn,
+      focus: this.focusMode,
     });
   }
 }

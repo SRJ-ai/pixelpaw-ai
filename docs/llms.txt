@@ -7,7 +7,7 @@
 > Claude Code, Anthropic, OpenAI, Gemini, OpenAI-compatible endpoints and local
 > Ollama models.
 
-Current version: 0.2.5 (released 13 August 2026)
+Current version: 0.2.6 (released 13 August 2026)
 Licence: Apache-2.0 (free and open source, no account required)
 Platform: Windows 10 and Windows 11, x64
 Download size: 1.78 MB (NSIS installer, unsigned)
@@ -86,7 +86,7 @@ web view.
 
 - [Home](https://srj-ai.github.io/pixelpaw-ai/): the landing page, with a live
   interactive cat you can pet in the browser.
-- [Download 0.2.5](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.5/PixelPaw.AI_0.2.5_x64-setup.exe): the Windows x64 installer.
+- [Download 0.2.6](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.6/PixelPaw.AI_0.2.6_x64-setup.exe): the Windows x64 installer.
 - [Releases](https://github.com/SRJ-ai/pixelpaw-ai/releases): all versions and
   release notes.
 - [Source](https://github.com/SRJ-ai/pixelpaw-ai): the full source, built with

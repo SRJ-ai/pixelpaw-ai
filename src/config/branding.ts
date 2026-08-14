@@ -8,5 +8,5 @@ export const BRANDING = {
   tagline: "Your tiny desktop companion",
   defaultPetName: "Pixel",
   defaultSpecies: "cat" as const,
-  version: "0.2.5",
+  version: "0.2.6",
 } as const;

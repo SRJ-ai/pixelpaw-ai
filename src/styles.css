@@ -332,6 +332,9 @@ body {
 }
 .pp-timer.focus .pp-timer-clock { color: var(--accent-hover); }
 .pp-timer.break .pp-timer-clock { color: #7fe0a8; }
+/* Focus borrows the timer's chip but has no countdown, so the glyph does not
+   want the tabular-figure metrics the clock is set in. */
+.pp-timer.focus .pp-timer-clock { font-size: 13px; font-family: inherit; }
 
 /* ------------------------------------------------------- attention badge
    An agent blocked on you. Unlike every other thing the pet says this has no
@@ -584,6 +587,19 @@ body.reduced-motion .pp-scroll-rod {
   /* Soft ground contact + a little depth. */
   filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.18));
 }
+
+/* The summoner's and mage's sigil: a slow turn with a faint pulse. Slow enough
+   to be ambient rather than a thing demanding attention on your wallpaper. */
+.pp-rune {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pp-rune-spin 12s linear infinite;
+}
+@keyframes pp-rune-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+body.reduced-motion .pp-rune { animation: none; }
 
 /* ---------------- Floating effect animations ---------------- */
 .pp-heart {

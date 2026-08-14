@@ -23,6 +23,14 @@ export interface Accessories {
   armor?: string; // armored chest/shoulders color
   visor?: string; // tech brow visor color
   chestLight?: string; // tech chest light color
+  /** Spectral glow behind the body (summoner). */
+  aura?: string;
+  /** A floating sigil above the head. Original geometry, not any real script. */
+  rune?: string;
+  /** Pointed mage hood. */
+  hood?: string;
+  /** Staff with a glowing orb, worn at the side like the katana. */
+  staff?: string;
 }
 
 /**
@@ -34,7 +42,7 @@ export interface Accessories {
  * actually carry the silhouette (ears, tail, muzzle, markings) and leaves the
  * PART ids alone, so every existing animation drives all three unchanged.
  */
-export type Species = "cat" | "dog" | "panda";
+export type Species = "cat" | "dog" | "panda" | "dragon";
 
 export interface CharacterTheme {
   id: string;
@@ -142,6 +150,54 @@ export const CHARACTERS: CharacterTheme[] = [
       noseColor: "#25272d",
     },
     accessories: {},
+  },
+  {
+    id: "dragon",
+    name: "Emberling",
+    species: "dragon",
+    blurb: "Small dragon. Big opinions.",
+    appearance: {
+      bodyColor: "#4b6bd6",
+      bellyColor: "#cfd9ff",
+      // Horns, wing membrane and tail spines all read off this.
+      patternColor: "#2c3f8f",
+      innerEarColor: "#8fa4e8",
+      eyeColor: "#ffc93a",
+      noseColor: "#2c3f8f",
+    },
+    accessories: {},
+  },
+  {
+    id: "summoner",
+    name: "Umbra",
+    blurb: "Commands what the light leaves behind.",
+    appearance: {
+      bodyColor: "#2f3140",
+      bellyColor: "#474b60",
+      patternColor: "#1d1e28",
+      innerEarColor: "#5b4b78",
+      eyeColor: "#8f6bff",
+      noseColor: "#1d1e28",
+    },
+    // An original archetype: a shadow-summoner in dark plate with a sigil
+    // overhead. Deliberately generic — no existing character is referenced.
+    // The plate has to be well clear of the body colour: at #3b3d52 against a
+    // #2f3140 body it was two shades apart and simply disappeared.
+    accessories: { armor: "#6a6f96", aura: "#8f6bff", rune: "#b39cff" },
+  },
+  {
+    id: "mage",
+    name: "Hexpaw",
+    blurb: "Reads the old marks. Mostly correctly.",
+    appearance: {
+      bodyColor: "#6b5bb5",
+      bellyColor: "#d8cff2",
+      patternColor: "#4a3d85",
+      innerEarColor: "#b9a8e8",
+      eyeColor: "#5ce1c4",
+      noseColor: "#4a3d85",
+    },
+    accessories: { hood: "#3b2f6b", staff: "#c9a227", rune: "#5ce1c4" },
   },
   {
     id: "samurai",

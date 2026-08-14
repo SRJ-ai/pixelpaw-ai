@@ -4,7 +4,7 @@ An original, intelligent **desktop companion** — a tiny hand-drawn pet that ge
 desktop, reacts to your mouse and activity, and (in later phases) grows an optional AI brain,
 productivity tools, and personality.
 
-**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.5/PixelPaw.AI_0.2.5_x64-setup.exe)** · Windows 10/11 · [changelog](CHANGELOG.md)
+**[⬇ Download for Windows](https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.6/PixelPaw.AI_0.2.6_x64-setup.exe)** · Windows 10/11 · [changelog](CHANGELOG.md)
 Updates install themselves from here on. The build carries no Authenticode certificate, so
 SmartScreen will flag the publisher on first install — choose *More info → Run anyway* if you're
 happy to proceed. (Updates *are* cryptographically signed, and the app refuses any that don't

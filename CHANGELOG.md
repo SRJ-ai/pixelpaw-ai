@@ -3,6 +3,51 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.6 — 13 August 2026
+
+### Added
+
+- **Talk to the pet instead of filling in a form.** Reminders already worked but
+  the only way to add one was Settings → Reminders → Add → three fields, which
+  nobody does mid-task. In the chat window:
+
+  ```
+  remind me at 5pm to call mum
+  remind me at 7am to stretch every day
+  what reminders do I have
+  my name is Vamsi
+  dance / sleep / sit / stretch / wake up
+  ```
+
+  These run *before* the AI, not through it — the AI is off by default and needs
+  a key or a CLI, so routing them through it would mean the most useful thing in
+  that window only worked for people who had configured something else. They
+  cost nothing and cannot hallucinate a time. A phrase with no readable time
+  creates nothing rather than guessing an hour.
+
+- **Reminders address you by name:** `⏰ Hey Vamsi — call mum`.
+
+- **Three more characters.** Emberling, a small dragon with horns, wings and a
+  spined tail — the fourth species on the shared rig. Umbra, a shadow-summoner
+  in dark plate under a turning sigil. Hexpaw, a hooded mage with a staff.
+
+  All original archetypes. Requests for Pokémon and Solo Leveling characters
+  were declined: both are actively enforced IP, and copying them would
+  contradict the originality claim this project is built on.
+
+### Fixed
+
+- **Focus mode had no switch.** `focusMode` was only ever set by starting a
+  Pomodoro, so a documented feature could not be turned on. Now in the
+  right-click menu with a chip showing when it's active. It declines during a
+  Pomodoro rather than desyncing.
+
+- **Your name was unreachable.** It lived only in the AI tab, but the pet uses
+  it for breaks, water and Pomodoro lines whether or not AI is on — so anyone
+  who never opened that tab got the generic line forever. Moved to the Pet tab.
+
+- **The water nudge now tells the time:** `3:45 pm — sip some water 💧`.
+
 ## 0.2.5 — 13 August 2026
 
 ### Fixed
