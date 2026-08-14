@@ -51,7 +51,9 @@ export default function Alert() {
   const dismiss = () => {
     setLeaving(true);
     // Let the fade finish before the window goes, or it vanishes mid-animation.
-    window.setTimeout(() => void invoke("close_alert"), 260);
+    window.setTimeout(() => {
+      invoke("close_alert").catch(() => {});
+    }, 260);
   };
 
   useEffect(() => {
@@ -108,10 +110,20 @@ export default function Alert() {
 
   // The overlay only takes clicks for the card. Set here rather than in Rust so
   // it follows the render: whatever is on screen decides.
+  //
+  // try/catch, not just .catch(): getCurrentWindow() reads
+  // window.__TAURI_INTERNALS__.metadata and throws *synchronously* when that is
+  // missing, so a rejected-promise handler never sees it. An unguarded throw in
+  // here unmounts the whole overlay — the same way a missing settings field once
+  // unmounted the pet and left a bare red marker on the wallpaper.
   useEffect(() => {
-    getCurrentWindow()
-      .setIgnoreCursorEvents(isNudge)
-      .catch(() => {});
+    try {
+      void getCurrentWindow()
+        .setIgnoreCursorEvents(isNudge)
+        .catch(() => {});
+    } catch {
+      /* not running under Tauri (a browser, a test) — nothing to set */
+    }
   }, [isNudge]);
 
   return (
