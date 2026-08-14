@@ -265,6 +265,9 @@ code freely; give your fork its own name.
 
 See [NOTICE](NOTICE) for attribution and the originality statement.
 
+A record of what was built across 0.2.x, and what is still unproven, is in
+[docs/PROGRESS.md](docs/PROGRESS.md).
+
 ## Code signing
 
 The installer carries no Authenticode certificate yet, so Windows SmartScreen warns
