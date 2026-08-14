@@ -14,6 +14,7 @@ import { IdleDirector } from "./behaviors/idle";
 import { dateKey, isReminderDue } from "./behaviors/reminders";
 import { homePosition, isReachable } from "./behaviors/placement";
 import { recordAgentContact } from "./behaviors/agentLog";
+import { invoke } from "@tauri-apps/api/core";
 import { applyRenderState, bindParts, type PetParts } from "./render/parts";
 import { subscribeControl, subscribeCursor, type CursorSample } from "@/platform/cursorBridge";
 import {
@@ -337,6 +338,16 @@ export class PetEngine {
   private announce(text: string, ms: number, cue: SoundCue) {
     this.onSay?.(text, ms, "notice");
     playCue(cue);
+  }
+
+  /**
+   * Raise the fullscreen overlay.
+   *
+   * Best-effort: the pet has already said the same thing in its own bubble, so
+   * a failure here loses the flourish rather than the reminder.
+   */
+  private overlay(kind: "water" | "break" | "reminder", title: string, id?: string) {
+    invoke("show_alert", { kind, title, id }).catch(() => {});
   }
 
   /** The pet just talking. Speech bubble, and the lightest cue there is. */
@@ -871,6 +882,8 @@ export class PetEngine {
     this.lastBreakAt = now;
     this.sm.request("stretch", now);
     this.say("pet.break", 3400, "nudge");
+    const who = this.settings.ai.userName.trim();
+    this.overlay("break", who ? t("pet.breakNamed", { name: who }) : t("pet.break"));
     this.onBreak?.();
   }
 
@@ -942,6 +955,9 @@ export class PetEngine {
     this.lastWaterAt = now;
     this.sm.request("happy", now);
     this.say("pet.water", 3400, "nudge");
+    const time = new Date().toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    const who = this.settings.ai.userName.trim();
+    this.overlay("water", who ? t("pet.waterNamed", { name: who, time }) : t("pet.water", { time }));
   }
 
   // ---- Scheduled reminders (§34) ----
@@ -969,6 +985,9 @@ export class PetEngine {
         "nudge"
       );
       this.onBreak?.(); // reuse the attention-grabbing flourish
+      // A scheduled reminder is a decision, so it gets the card with Stop and
+      // Snooze rather than a nudge that leaves on its own.
+      this.overlay("reminder", r.title, r.id);
       this.onReminderFired?.(r.id, today);
     }
   }
@@ -1020,6 +1039,9 @@ export class PetEngine {
     }
     this.focusMode = !this.focusMode;
     this.flushStatus();
+    // Silence Windows toasts too: a focus mode that quiets the pet but leaves
+    // every other notification coming through is only half of what was asked.
+    invoke("set_dnd", { on: this.focusMode }).catch(() => {});
     if (this.focusMode) {
       this.sm.request("sit", now);
       this.announce(t("pet.focusOn"), 2600, "chime");
@@ -1052,6 +1074,7 @@ export class PetEngine {
   private stopPomodoro() {
     this.pomo.active = false;
     this.focusMode = false;
+    invoke("set_dnd", { on: false }).catch(() => {});
     this.flushStatus();
     this.chat(t("pet.pomodoroStopped"), 1600, "pop");
   }

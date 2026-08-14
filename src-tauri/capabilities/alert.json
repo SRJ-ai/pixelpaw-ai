@@ -1,0 +1,18 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "alert",
+  "description": "Permissions for the fullscreen reminder overlay. Needs cursor-event control because the window covers the whole screen: without it the desktop would be unclickable for as long as the overlay is up.",
+  "windows": ["alert"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "core:event:allow-emit",
+    "core:window:allow-close",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:window:allow-set-ignore-cursor-events"
+  ]
+}

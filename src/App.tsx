@@ -11,7 +11,7 @@ import { AttentionBadge, FocusChip, PinnedNote, PomodoroTimer } from "./pet/rend
 import { PaperScroll } from "./pet/render/PaperScroll";
 import { SpeechBubble } from "./pet/render/SpeechBubble";
 import { BreakBurst } from "./pet/render/BreakBurst";
-import { SamuraiEntrance } from "./pet/render/SamuraiEntrance";
+import { Entrance } from "./pet/render/Entrance";
 import { PetEngine, type SayTone } from "./pet/engine";
 import { bus } from "./events/eventBus";
 import { playCue, setSound } from "./platform/sound";
@@ -305,8 +305,6 @@ export default function App() {
 
   // Switching *to* the samurai plays its entrance (§80).
   useEffect(() => {
-    const changedToSamurai =
-      settings.characterId === "samurai" && prevCharacter.current !== "samurai";
     const changed = prevCharacter.current !== settings.characterId;
     prevCharacter.current = settings.characterId;
     // Each character introduces itself in its own voice. Cheap, and it makes
@@ -318,7 +316,7 @@ export default function App() {
       window.clearTimeout(sayTimer.current);
       sayTimer.current = window.setTimeout(() => setSay(null), 3600);
     }
-    if (!changedToSamurai || settings.general.reducedMotion) return;
+    if (!changed || settings.general.reducedMotion) return;
     setSamurai(true);
     window.clearTimeout(samTimer.current);
     samTimer.current = window.setTimeout(() => setSamurai(false), 2600);
@@ -365,7 +363,12 @@ export default function App() {
         decor={settings.general.cosmicDecor}
       />
       <BreakBurst active={breaking} />
-      <SamuraiEntrance active={samurai} caption="ఏం చేద్దాం బాస్?" />
+      <Entrance
+        active={samurai}
+        kind={character.entrance?.kind}
+        color={character.entrance?.color}
+        caption={settings.characterId === "samurai" ? "ఏం చేద్దాం బాస్?" : undefined}
+      />
     </div>
   );
 }

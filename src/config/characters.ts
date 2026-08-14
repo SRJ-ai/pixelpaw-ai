@@ -45,6 +45,7 @@ export interface Accessories {
 /** What the rig can draw, re-exported so the roster reads naturally. */
 export type { RigSpecies as Species } from "@/types/pet";
 import type { RigSpecies as Species } from "@/types/pet";
+import type { EntranceKind } from "@/pet/render/Entrance";
 
 /**
  * Silhouette variation, which is what actually distinguishes creature designs.
@@ -81,6 +82,8 @@ export interface CharacterTheme {
   line?: string;
   /** Defaults to "cat" — the roster that existed before species did. */
   species?: Species;
+  /** The flourish it makes when you switch to it. */
+  entrance?: { kind: EntranceKind; color: string };
   /** Silhouette tweaks. Omitted means the species' own default outline. */
   shape?: Shape;
   appearance: PetAppearance;
@@ -91,6 +94,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "classic",
     name: "Pixel",
+    entrance: { kind: "puff", color: "#ffd23f" },
     line: "Reporting for duty. Mostly.",
     blurb: "The original companion.",
     appearance: { ...DEFAULT_APPEARANCE },
@@ -99,6 +103,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "robot",
     name: "Bolt",
+    entrance: { kind: "spark", color: "#2fd3e6" },
     shape: { ears: "round", tail: "stub", build: "stocky" },
     line: "Systems nominal. Mood: excellent.",
     blurb: "A friendly gadget-bot.",
@@ -115,6 +120,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "hero",
     name: "Captain Paw",
+    entrance: { kind: "dash", color: "#ffd23f" },
     shape: { ears: "tall", tail: "bushy" },
     line: "Naps defended. You are welcome.",
     blurb: "Caped defender of naps.",
@@ -131,6 +137,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "acrobat",
     name: "Web-Whiskers",
+    entrance: { kind: "dash", color: "#e0446a" },
     shape: { ears: "tall", tail: "curl", build: "slim" },
     line: "Nothing gets past these whiskers.",
     blurb: "A masked wall-crawler.",
@@ -147,6 +154,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "tech",
     name: "Iron Paw",
+    entrance: { kind: "spark", color: "#5ad1ff" },
     shape: { ears: "round", tail: "stub", build: "stocky" },
     line: "Suited up. Try to keep pace.",
     blurb: "Armored tech hero.",
@@ -163,6 +171,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dog",
     name: "Biscuit",
+    entrance: { kind: "puff", color: "#f6e3c4" },
     line: "You came back! You came back!",
     species: "dog",
     blurb: "Ears down, tail up, waiting.",
@@ -180,6 +189,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "panda",
     name: "Bamboo",
+    entrance: { kind: "puff", color: "#ffffff" },
     line: "I was resting. I will resume resting.",
     species: "panda",
     blurb: "Unbothered. Well rested.",
@@ -198,6 +208,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dragon",
     name: "Emberling",
+    entrance: { kind: "roar", color: "#8fa4e8" },
     line: "Small. Winged. Unimpressed.",
     species: "dragon",
     shape: { horns: "swept", wings: "bat" },
@@ -216,6 +227,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dragon-ember",
     name: "Cinder",
+    entrance: { kind: "roar", color: "#ff8a3d" },
     line: "Careful — I run hot.",
     species: "dragon",
     shape: { horns: "spiked", wings: "bat", build: "stocky", frill: true },
@@ -233,6 +245,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dragon-storm",
     name: "Volt",
+    entrance: { kind: "spark", color: "#ffe14d" },
     line: "Hair standing up? That is me.",
     species: "dragon",
     shape: { horns: "spiked", wings: "none", build: "slim" },
@@ -250,6 +263,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dragon-frost",
     name: "Rime",
+    entrance: { kind: "roar", color: "#9fe8ff" },
     line: "Cold paws. Warm intentions.",
     species: "dragon",
     shape: { horns: "curled", wings: "finned", build: "stocky" },
@@ -267,6 +281,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "summoner",
     name: "Umbra",
+    entrance: { kind: "bloom", color: "#b39cff" },
     shape: { ears: "tufted", tail: "bushy", build: "slim" },
     line: "The shadows and I have an arrangement.",
     blurb: "Commands what the light leaves behind.",
@@ -287,6 +302,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "mage",
     name: "Hexpaw",
+    entrance: { kind: "bloom", color: "#5ce1c4" },
     shape: { ears: "tufted", tail: "bushy" },
     line: "I can read the old marks. Most of them.",
     blurb: "Reads the old marks. Mostly correctly.",
@@ -303,6 +319,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "samurai",
     name: "OG Ronin",
+    entrance: { kind: "slash", color: "#ffd23f" },
     shape: { ears: "tufted", tail: "curl", build: "stocky" },
     // Already had a voice: the entrance cinematic says this too.
     line: "ఏం చేద్దాం బాస్?",

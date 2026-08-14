@@ -1481,3 +1481,177 @@ body.chat-window {
 .set-char-preview { width: 58px; height: 58px; display: grid; place-items: center; }
 .set-char-preview svg { width: 100%; height: 100%; overflow: visible; }
 .set-char-name { font-size: var(--text-2xs); font-weight: 600; }
+
+/* ---------------------------------------------------------- reminder overlay
+   A separate fullscreen transparent window (src-tauri/src/alert.rs). Two
+   shapes: a nudge that flashes and leaves, and a card that waits for a
+   decision. The nudge never takes clicks — a fullscreen window that swallowed
+   them would make the desktop unusable for as long as it was up. */
+body.alert-window {
+  background: transparent;
+  overflow: hidden;
+}
+.al-root {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  transition: opacity 240ms var(--ease-out);
+}
+.al-root.leaving { opacity: 0; }
+
+/* The flash. Two quick pulses rather than one long one: a single fade reads as
+   a screen glitch, two reads as deliberate. */
+.al-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(120, 200, 255, 0.3), rgba(10, 14, 24, 0.62) 70%);
+  animation: al-flash 900ms var(--ease-out) 2;
+}
+@keyframes al-flash {
+  0% { opacity: 0; }
+  18% { opacity: 1; }
+  100% { opacity: 0.82; }
+}
+
+.al-nudge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+/* Enlarged, as asked. The rig is vector, so this costs nothing in fidelity. */
+.al-pet {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5));
+}
+.al-pet svg { width: 100%; height: 100%; overflow: visible; }
+
+/* Drinking: the whole body dips to the bowl and back. Applied to the rig, so
+   every character and every species does it without its own artwork. */
+.al-pet.water svg {
+  transform-origin: 50% 100%;
+  animation: al-drink 1150ms var(--ease-out) infinite;
+}
+@keyframes al-drink {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  35% { transform: rotate(3deg) translateY(16px); }
+  55% { transform: rotate(3deg) translateY(13px); }
+}
+/* Break: a stretch upward instead. */
+.al-pet.break svg {
+  transform-origin: 50% 100%;
+  animation: al-stretch 1400ms var(--ease-out) infinite;
+}
+@keyframes al-stretch {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  45% { transform: scaleY(1.1) translateY(-10px); }
+}
+
+.al-bowl {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 96px;
+  height: 30px;
+  transform: translateX(-50%);
+  border-radius: 0 0 48px 48px / 0 0 26px 26px;
+  background: linear-gradient(180deg, #7fd4e8 0 42%, #3f92ad 42%);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.al-drop {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  width: 8px;
+  height: 11px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: #9fe8ff;
+  opacity: 0;
+  animation: al-drop 1150ms var(--ease-out) infinite;
+}
+.al-drop.d1 { transform: translateX(-16px); }
+.al-drop.d2 { transform: translateX(8px); animation-delay: 0.18s; }
+@keyframes al-drop {
+  0%, 40% { opacity: 0; }
+  55% { opacity: 1; }
+  85%, 100% { opacity: 0; }
+}
+
+.al-line {
+  margin: 0;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  background: rgba(14, 15, 20, 0.88);
+  color: #f3f4f8;
+  font: 700 22px/1.3 system-ui, "Segoe UI", sans-serif;
+  text-align: center;
+  max-width: 70vw;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+/* The card. Deliberately not enlarged and not flashing: it is waiting for you,
+   not shouting at you. */
+.al-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 22px 26px 20px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0)), rgba(22, 24, 32, 0.97);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 24px 60px rgba(0, 0, 0, 0.5);
+  animation: al-card-in 260ms var(--ease-out);
+}
+@keyframes al-card-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+}
+.al-card-pet { width: 96px; height: 96px; }
+.al-card-pet svg { width: 100%; height: 100%; overflow: visible; }
+.al-card-kicker {
+  margin: 0;
+  font: 700 10px/1 system-ui, sans-serif;
+  letter-spacing: 0.14em;
+  color: #ffb020;
+}
+.al-card-title {
+  margin: 2px 0 14px;
+  max-width: 30ch;
+  color: #f3f4f8;
+  font: 700 19px/1.35 system-ui, "Segoe UI", sans-serif;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.al-actions { display: flex; gap: 10px; }
+.al-btn {
+  padding: 9px 20px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef0f6;
+  font: 600 14px/1 system-ui, sans-serif;
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out);
+}
+.al-btn:hover { background: rgba(255, 255, 255, 0.13); border-color: rgba(255, 255, 255, 0.3); }
+.al-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.al-btn.primary:hover { background: var(--accent-hover); }
+
+body.reduced-motion .al-flash,
+body.reduced-motion .al-pet svg,
+body.reduced-motion .al-drop,
+body.reduced-motion .al-card {
+  animation: none;
+}

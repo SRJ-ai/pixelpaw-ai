@@ -14,9 +14,11 @@
 //! capabilities.
 
 mod agent;
+mod alert;
 mod ai;
 mod cursor;
 mod detect;
+mod dnd;
 mod dock;
 mod input;
 mod media;
@@ -75,6 +77,9 @@ pub fn run() {
             menu::open_settings,
             menu::quit_app,
             update::check_for_update,
+            alert::show_alert,
+            alert::close_alert,
+            dnd::set_dnd,
         ])
         // One handler for both sources: tray menu clicks and the pet's
         // right-click popup arrive here alike.
