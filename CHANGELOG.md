@@ -3,6 +3,72 @@
 All notable changes to PixelPaw AI. Dates are the release date; versions follow
 [semantic versioning](https://semver.org/).
 
+## 0.2.9 — 13 August 2026
+
+### Fixed
+
+- **The reminder overlay could unmount itself.** `getCurrentWindow()` reads
+  `window.__TAURI_INTERNALS__.metadata` and throws *synchronously* when that is
+  absent, so the `.catch()` on the promise it returns never saw it. The throw
+  escaped the effect and took the whole overlay down — the same shape as the bug
+  that once unmounted the pet and left a bare red marker on the wallpaper.
+
+  The packaged app was never affected, because `__TAURI_INTERNALS__` always
+  exists there. Released anyway so the published build matches the source: 0.2.8's
+  binary was cut minutes before this fix, and a version that quietly means two
+  different things is worse than an extra tag.
+
+## 0.2.8 — 13 August 2026
+
+### Added
+
+- **Reminders take the whole screen.** The pet is 240×240 and sits wherever you
+  left it, so it could not show anything in the middle of the screen. There is a
+  separate fullscreen overlay now, in two shapes because they are two jobs.
+
+  *Water and break* are information: the screen flashes, an enlarged pet does the
+  thing being asked of you, and it leaves on its own after five seconds. The
+  drinking animation is CSS on the shared rig, so every character and every
+  species performs it without its own artwork.
+
+  *A scheduled reminder* is a decision: a centred card with **Snooze 10 min** and
+  **Got it**, which waits. Snooze re-arms the same reminder rather than adding a
+  second one, and clears the fired-today mark so it can fire again. Escape closes
+  it.
+
+  The overlay is click-through for nudges and only accepts clicks for the card. A
+  fullscreen window that swallowed clicks would make the desktop unusable for as
+  long as it was up, which is a far worse failure than a missed nudge.
+
+- **Focus mode silences Windows notifications.** Quieting the pet while every
+  other toast still arrived was half a focus mode. Windows exposes no public API
+  for Focus Assist — only a way to read it — so this writes the notification
+  master switch the Settings app itself uses, records the previous value on the
+  way in and restores it on the way out. Anyone who already had notifications off
+  does not get them switched on by leaving focus mode.
+
+- **Schedules from the pet's own menu.** Right-click gives *Break reminder*,
+  *Water reminder* and *Remind me…* with intervals, instead of a trip to
+  Settings. "Remind me…" is relative because a menu can offer a duration but not
+  a title and a clock time; absolute reminders come from the chat window.
+
+- **Every character has an entrance.** The samurai had a cinematic and nobody
+  else did. Six flourishes now — a blade of light, forked lightning, speed lines,
+  an opening sigil, concentric shockwaves, and soft puffs for the animals that
+  would not make an entrance — built from one set of keyframes. Each character
+  also says a line of its own when you switch to it.
+
+- **Every character has its own outline.** Eight of the fourteen were the same
+  cat in different colours with a prop on it, and the four dragons were one
+  silhouette in four palettes. Shape now carries build, ears, tail, horns, wings
+  and a frill, and each character sets one.
+
+- **The body is separable from the costume.** Settings → Appearance → Body picks
+  cat, dog, panda or dragon for any character, so four bodies combine with the
+  six colour controls that already existed.
+
+*(0.2.7 was built and signed but never published; its contents are above.)*
+
 ## 0.2.6 — 13 August 2026
 
 ### Added

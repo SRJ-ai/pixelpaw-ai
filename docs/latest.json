@@ -1,11 +1,11 @@
 {
-  "version": "0.2.8",
-  "notes": "PixelPaw AI 0.2.8",
-  "pub_date": "2026-08-14T13:30:14.806Z",
+  "version": "0.2.9",
+  "notes": "- The reminder overlay could unmount itself. `getCurrentWindow()` reads\n  `window.__TAURI_INTERNALS__.metadata` and throws *synchronously* when that is\n  absent, so the `.catch()` on the promise it returns never saw it. The throw\n  escaped the effect and took the whole overlay down — the same shape as the bug\n  that once unmounted the pet and left a bare red marker on the wallpaper.\n\n  The packaged app was never affected, because `__TAURI_INTERNALS__` always\n  exists there. Released anyway so the published build matches the source: 0.2.8's\n  binary was cut minutes before this fix, and a version that quietly means two\n  different things is worse than an extra tag.",
+  "pub_date": "2026-08-14T13:43:32.415Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTWRLcHpYb2I3Y1Zzc29weFUzUzZiUlZBVEdlLytDWk9BeExCNlNXL3ZqN1NRSGZ2dUg1dndGUnAwVzE1blc2SVNXc2R0aDVJT1htdnA5UVpoaWNscHdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NzE0MjE0CWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjhfeDY0LXNldHVwLmV4ZQpGeTluMk43Y2ZkWFlnRWZ5R1U4TUVnZlpOMTBTemVQTVU4UFBoZTRrK0xNS0gzajFYVFhqV2w3SlBOelQvemNiVElXY01jWWNhVGVYd1I5RDNpVEtEQT09Cg==",
-      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.8/PixelPaw.AI_0.2.8_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb2hWUU02eCtLTWN3UExNdlI2NlFXZFFwYlNwVGNUeGcxT1MyWGpzZk5oazB6OTFvQkV4UGJpeHJJYlJXT0g3UFpXTHZFQ1JUbFRtcFhKTHM0UjgzYW56RHBKaGE5cEFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NzE1MDExCWZpbGU6UGl4ZWxQYXcgQUlfMC4yLjlfeDY0LXNldHVwLmV4ZQpOK1dhUExzdXZHcno3QXNoOWx3SkNUdEpiL2RsTmFtU29nQW54T3dzVlZWUUN2bEluV1NxNWhNNldJTE1PUEZwRTB2N0JQcG9ZT1hlODFnUWR3SkJEUT09Cg==",
+      "url": "https://github.com/SRJ-ai/pixelpaw-ai/releases/download/v0.2.9/PixelPaw.AI_0.2.9_x64-setup.exe"
     }
   }
 }
