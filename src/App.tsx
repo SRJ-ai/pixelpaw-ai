@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
-import { subscribeUpdate } from "./platform/inputBridge";
+import { subscribeSchedule, subscribeUpdate } from "./platform/inputBridge";
+import { inMinutes } from "./pet/behaviors/reminders";
 import { loadOnboarding, markSeen, planOnboarding } from "./pet/behaviors/onboarding";
 import { invoke } from "@tauri-apps/api/core";
 import { PixelCat } from "./pet/render/PixelCat";
@@ -15,7 +16,13 @@ import { PetEngine, type SayTone } from "./pet/engine";
 import { bus } from "./events/eventBus";
 import { playCue, setSound } from "./platform/sound";
 import { t } from "./config/i18n";
-import { loadSettings, onSettingsChanged, saveSettings, type Settings } from "./config/settings";
+import {
+  formatInterval,
+  loadSettings,
+  onSettingsChanged,
+  saveSettings,
+  type Settings,
+} from "./config/settings";
 import { characterById } from "./config/characters";
 
 /** How long the media pill lingers after the cursor leaves the pet. */
@@ -128,6 +135,59 @@ export default function App() {
     };
     window.addEventListener("contextmenu", onContextMenu);
     return () => window.removeEventListener("contextmenu", onContextMenu);
+  }, []);
+
+  /**
+   * Schedules set from the pet's own right-click menu.
+   *
+   * These write straight to stored settings and broadcast, which is the same
+   * path the Settings window uses — so a change made here shows up there, and
+   * the live pet picks it up without a restart.
+   */
+  useEffect(() => {
+    let unlisten: UnlistenFn[] = [];
+    const announce = (text: string) => {
+      setSay({ text, tone: "notice" });
+      playCue("nudge");
+      window.clearTimeout(sayTimer.current);
+      sayTimer.current = window.setTimeout(() => setSay(null), 3200);
+    };
+    const setInterval_ = (key: "break" | "water", minutes: number) => {
+      const next = loadSettings();
+      if (key === "break") {
+        next.productivity.breakEnabled = minutes > 0;
+        if (minutes > 0) next.productivity.breakIntervalMin = minutes;
+      } else {
+        next.productivity.waterEnabled = minutes > 0;
+        if (minutes > 0) next.productivity.waterIntervalMin = minutes;
+      }
+      void saveSettings(next);
+      announce(
+        minutes === 0
+          ? t(key === "break" ? "pet.breakOff" : "pet.waterOff")
+          : t(key === "break" ? "pet.breakEvery" : "pet.waterEvery", {
+              every: formatInterval(minutes),
+            })
+      );
+    };
+    subscribeSchedule(
+      (m) => setInterval_("break", m),
+      (m) => setInterval_("water", m),
+      (m) => {
+        const next = loadSettings();
+        const time = inMinutes(m);
+        next.reminders.push({
+          id: crypto.randomUUID(),
+          title: t("pet.remindInTitle"),
+          time,
+          recurrence: "once",
+          enabled: true,
+        });
+        void saveSettings(next);
+        announce(t("pet.remindIn", { every: formatInterval(m), time }));
+      }
+    ).then((u) => (unlisten = u));
+    return () => unlisten.forEach((u) => u());
   }, []);
 
   /**
@@ -247,7 +307,17 @@ export default function App() {
   useEffect(() => {
     const changedToSamurai =
       settings.characterId === "samurai" && prevCharacter.current !== "samurai";
+    const changed = prevCharacter.current !== settings.characterId;
     prevCharacter.current = settings.characterId;
+    // Each character introduces itself in its own voice. Cheap, and it makes
+    // switching feel like meeting someone rather than repainting a sprite.
+    const line = characterById(settings.characterId).line;
+    if (changed && line) {
+      setSay({ text: line, tone: "chat" });
+      playCue("chirp");
+      window.clearTimeout(sayTimer.current);
+      sayTimer.current = window.setTimeout(() => setSay(null), 3600);
+    }
     if (!changedToSamurai || settings.general.reducedMotion) return;
     setSamurai(true);
     window.clearTimeout(samTimer.current);
@@ -291,7 +361,7 @@ export default function App() {
         ref={svgRef}
         appearance={settings.appearance}
         accessories={character.accessories}
-        species={character.species}
+        species={settings.appearance.species ?? character.species} shape={character.shape}
         decor={settings.general.cosmicDecor}
       />
       <BreakBurst active={breaking} />

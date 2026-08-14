@@ -26,6 +26,22 @@ export function minutesOfDay(hhmm: string): number | null {
 }
 
 /** Local "YYYY-MM-DD" — the key a reminder's `lastFired` is stamped with. */
+/**
+ * "In 30 minutes" as the "HH:MM" the scheduler wants.
+ *
+ * A menu can offer a duration but not a title and a clock time, so the pet's
+ * own menu sets relative reminders and the chat window handles absolute ones.
+ * Wrapping past midnight is the case worth getting right: 23:50 plus 30 minutes
+ * is 00:20, and a reminder that lands at 24:20 never fires at all.
+ */
+export function inMinutes(minutes: number, now = new Date()): string {
+  const total = (now.getHours() * 60 + now.getMinutes() + Math.round(minutes)) % (24 * 60);
+  const wrapped = (total + 24 * 60) % (24 * 60);
+  const h = Math.floor(wrapped / 60);
+  const m = wrapped % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 export function dateKey(d: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;

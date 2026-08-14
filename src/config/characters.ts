@@ -42,14 +42,47 @@ export interface Accessories {
  * actually carry the silhouette (ears, tail, muzzle, markings) and leaves the
  * PART ids alone, so every existing animation drives all three unchanged.
  */
-export type Species = "cat" | "dog" | "panda" | "dragon";
+/** What the rig can draw, re-exported so the roster reads naturally. */
+export type { RigSpecies as Species } from "@/types/pet";
+import type { RigSpecies as Species } from "@/types/pet";
+
+/**
+ * Silhouette variation, which is what actually distinguishes creature designs.
+ *
+ * Recolouring is cheap and it shows: four dragons in four hues sharing one
+ * outline read as one dragon with a palette slider, not as four characters. You
+ * recognise a creature by its shape at a glance and its colour second, so the
+ * shape is what has to differ.
+ */
+export interface Shape {
+  horns?: "swept" | "curled" | "spiked";
+  wings?: "bat" | "finned" | "none";
+  /**
+   * Ear shape, for the cat rig. Eight of the roster were one cat in different
+   * colours with a prop on it, which is the same failure the dragons had: you
+   * recognise an animal by its outline, so the outline is what has to change.
+   */
+  ears?: "pointed" | "tall" | "round" | "tufted";
+  tail?: "curl" | "bushy" | "stub";
+  /** A fan around the neck. Reads from further away than any horn. */
+  frill?: boolean;
+  /** Wider and lower, or narrower and taller, than the default body. */
+  build?: "stocky" | "slim";
+}
 
 export interface CharacterTheme {
   id: string;
   name: string;
   blurb: string;
+  /**
+   * What it says when you switch to it. Written for this project — the
+   * archetype's voice, not a quotation from anything.
+   */
+  line?: string;
   /** Defaults to "cat" — the roster that existed before species did. */
   species?: Species;
+  /** Silhouette tweaks. Omitted means the species' own default outline. */
+  shape?: Shape;
   appearance: PetAppearance;
   accessories: Accessories;
 }
@@ -58,6 +91,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "classic",
     name: "Pixel",
+    line: "Reporting for duty. Mostly.",
     blurb: "The original companion.",
     appearance: { ...DEFAULT_APPEARANCE },
     accessories: {},
@@ -65,6 +99,8 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "robot",
     name: "Bolt",
+    shape: { ears: "round", tail: "stub", build: "stocky" },
+    line: "Systems nominal. Mood: excellent.",
     blurb: "A friendly gadget-bot.",
     appearance: {
       bodyColor: "#9fb3c8",
@@ -79,6 +115,8 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "hero",
     name: "Captain Paw",
+    shape: { ears: "tall", tail: "bushy" },
+    line: "Naps defended. You are welcome.",
     blurb: "Caped defender of naps.",
     appearance: {
       bodyColor: "#e8a24a",
@@ -93,6 +131,8 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "acrobat",
     name: "Web-Whiskers",
+    shape: { ears: "tall", tail: "curl", build: "slim" },
+    line: "Nothing gets past these whiskers.",
     blurb: "A masked wall-crawler.",
     appearance: {
       bodyColor: "#c8324b",
@@ -107,6 +147,8 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "tech",
     name: "Iron Paw",
+    shape: { ears: "round", tail: "stub", build: "stocky" },
+    line: "Suited up. Try to keep pace.",
     blurb: "Armored tech hero.",
     appearance: {
       bodyColor: "#b3b8bf",
@@ -121,6 +163,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dog",
     name: "Biscuit",
+    line: "You came back! You came back!",
     species: "dog",
     blurb: "Ears down, tail up, waiting.",
     appearance: {
@@ -137,6 +180,7 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "panda",
     name: "Bamboo",
+    line: "I was resting. I will resume resting.",
     species: "panda",
     blurb: "Unbothered. Well rested.",
     appearance: {
@@ -154,7 +198,9 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "dragon",
     name: "Emberling",
+    line: "Small. Winged. Unimpressed.",
     species: "dragon",
+    shape: { horns: "swept", wings: "bat" },
     blurb: "Small dragon. Big opinions.",
     appearance: {
       bodyColor: "#4b6bd6",
@@ -168,8 +214,61 @@ export const CHARACTERS: CharacterTheme[] = [
     accessories: {},
   },
   {
+    id: "dragon-ember",
+    name: "Cinder",
+    line: "Careful — I run hot.",
+    species: "dragon",
+    shape: { horns: "spiked", wings: "bat", build: "stocky", frill: true },
+    blurb: "Warm to the touch. Ask first.",
+    appearance: {
+      bodyColor: "#e05a2b",
+      bellyColor: "#ffd9a8",
+      patternColor: "#a3341a",
+      innerEarColor: "#ffab5e",
+      eyeColor: "#ffe14d",
+      noseColor: "#7d2712",
+    },
+    accessories: { aura: "#ff8a3d" },
+  },
+  {
+    id: "dragon-storm",
+    name: "Volt",
+    line: "Hair standing up? That is me.",
+    species: "dragon",
+    shape: { horns: "spiked", wings: "none", build: "slim" },
+    blurb: "Static in the whiskers.",
+    appearance: {
+      bodyColor: "#f2c53d",
+      bellyColor: "#fff4c2",
+      patternColor: "#9a7410",
+      innerEarColor: "#ffe07a",
+      eyeColor: "#3ad0ff",
+      noseColor: "#6b4f08",
+    },
+    accessories: { aura: "#ffe14d" },
+  },
+  {
+    id: "dragon-frost",
+    name: "Rime",
+    line: "Cold paws. Warm intentions.",
+    species: "dragon",
+    shape: { horns: "curled", wings: "finned", build: "stocky" },
+    blurb: "Prefers the window seat.",
+    appearance: {
+      bodyColor: "#7fd4e8",
+      bellyColor: "#e8fbff",
+      patternColor: "#3f92ad",
+      innerEarColor: "#bdeeff",
+      eyeColor: "#2f6f8f",
+      noseColor: "#2f6f8f",
+    },
+    accessories: { aura: "#9fe8ff" },
+  },
+  {
     id: "summoner",
     name: "Umbra",
+    shape: { ears: "tufted", tail: "bushy", build: "slim" },
+    line: "The shadows and I have an arrangement.",
     blurb: "Commands what the light leaves behind.",
     appearance: {
       bodyColor: "#2f3140",
@@ -188,6 +287,8 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "mage",
     name: "Hexpaw",
+    shape: { ears: "tufted", tail: "bushy" },
+    line: "I can read the old marks. Most of them.",
     blurb: "Reads the old marks. Mostly correctly.",
     appearance: {
       bodyColor: "#6b5bb5",
@@ -202,6 +303,9 @@ export const CHARACTERS: CharacterTheme[] = [
   {
     id: "samurai",
     name: "OG Ronin",
+    shape: { ears: "tufted", tail: "curl", build: "stocky" },
+    // Already had a voice: the entrance cinematic says this too.
+    line: "ఏం చేద్దాం బాస్?",
     blurb: "A lone samurai cat. ఏం చేద్దాం బాస్?",
     appearance: {
       bodyColor: "#4a4e57",

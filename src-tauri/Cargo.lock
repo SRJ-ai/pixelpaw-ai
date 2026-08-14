@@ -2586,7 +2586,7 @@ dependencies = [
 
 [[package]]
 name = "pixelpaw-ai"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "device_query",
  "futures-util",

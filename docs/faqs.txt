@@ -1,6 +1,6 @@
 # PixelPaw AI — Frequently Asked Questions
 
-Last updated: 13 August 2026 (version 0.2.6)
+Last updated: 13 August 2026 (version 0.2.7)
 Home: https://srj-ai.github.io/pixelpaw-ai/
 Source: https://github.com/SRJ-ai/pixelpaw-ai
 

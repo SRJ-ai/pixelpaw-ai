@@ -22,6 +22,22 @@ export function subscribePomodoro(cb: () => void): Promise<UnlistenFn> {
   return listen("tray:pomodoro", () => cb());
 }
 
+/**
+ * Schedules changed from the pet's own menu. `minutes` of 0 means off for the
+ * two intervals; for `onRemindIn` it is always a real duration.
+ */
+export function subscribeSchedule(
+  onBreakEvery: (minutes: number) => void,
+  onWaterEvery: (minutes: number) => void,
+  onRemindIn: (minutes: number) => void
+): Promise<UnlistenFn[]> {
+  return Promise.all([
+    listen<number>("tray:break-every", (e) => onBreakEvery(e.payload)),
+    listen<number>("tray:water-every", (e) => onWaterEvery(e.payload)),
+    listen<number>("tray:remind-in", (e) => onRemindIn(e.payload)),
+  ]);
+}
+
 /** Chat asked the pet to do something ("dance", "sleep"). */
 export function subscribeAct(cb: (state: string) => void): Promise<UnlistenFn> {
   return listen<string>("pet:act", (e) => cb(e.payload));

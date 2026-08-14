@@ -52,6 +52,19 @@ export const ANIM_STATES: ReadonlySet<string> = new Set(ANIM_STATE_LIST);
 export type Mouth = "neutral" | "smile" | "open" | "frown";
 
 /** Recolorable appearance (§7). Every color is data, never hard-coded in art. */
+/**
+ * The bodies the rig can actually draw — a narrower thing than `Species` above,
+ * which is the aspirational data model and still lists animals nothing has been
+ * drawn for. Kept separate and named for what it is, because a picker offering
+ * "bunny" that renders a cat would be a worse lie than a shorter list.
+ *
+ * Lives here rather than beside the character roster so `PetAppearance` can name
+ * it without the two files importing each other.
+ */
+export const SPECIES = ["cat", "dog", "panda", "dragon"] as const;
+
+export type RigSpecies = (typeof SPECIES)[number];
+
 export interface PetAppearance {
   bodyColor: string;
   bellyColor: string;
@@ -59,6 +72,15 @@ export interface PetAppearance {
   innerEarColor: string;
   eyeColor: string;
   noseColor: string;
+  /**
+   * Overrides the body the chosen character came with.
+   *
+   * Undefined means "whatever this character is", which is what every preset
+   * wants. Setting it decouples the body from the costume, so any of the six
+   * colours can be worn on any of the four animals — which is a far larger
+   * roster than shipping more presets would be.
+   */
+  species?: RigSpecies;
 }
 
 /** Slow-decaying persistent needs (§22). Stored later; defaults for now. */

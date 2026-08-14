@@ -6,9 +6,55 @@
 //! app quittable and configurable without hunting through the taskbar.
 
 use tauri::{
-    menu::{ContextMenu, Menu, MenuItem, PredefinedMenuItem},
+    menu::{ContextMenu, Menu, MenuItem, PredefinedMenuItem, Submenu},
     AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Window,
 };
+
+/// Intervals offered for the break and water nudges, in minutes.
+const INTERVALS: [u32; 5] = [15, 30, 45, 60, 90];
+
+/// "Remind me in…" offsets, in minutes. Relative rather than absolute because a
+/// menu can collect a duration but not a title and a clock time — those come
+/// from the chat window instead ("remind me at 5pm to call mum").
+const IN_MINUTES: [u32; 4] = [5, 15, 30, 60];
+
+fn label_minutes(m: u32) -> String {
+    if m < 60 {
+        format!("{m} min")
+    } else if m % 60 == 0 {
+        format!("{} h", m / 60)
+    } else {
+        format!("{} h {} m", m / 60, m % 60)
+    }
+}
+
+/// One submenu of intervals, plus Off. `prefix` becomes the item id, so the
+/// handler can read the value straight back out of it.
+fn interval_menu(
+    app: &AppHandle,
+    title: &str,
+    prefix: &str,
+) -> tauri::Result<Submenu<tauri::Wry>> {
+    let off = MenuItem::with_id(app, format!("{prefix}_0"), "Off", true, None::<&str>)?;
+    let sep = PredefinedMenuItem::separator(app)?;
+    let items: Vec<MenuItem<tauri::Wry>> = INTERVALS
+        .iter()
+        .map(|m| {
+            MenuItem::with_id(
+                app,
+                format!("{prefix}_{m}"),
+                format!("Every {}", label_minutes(*m)),
+                true,
+                None::<&str>,
+            )
+        })
+        .collect::<tauri::Result<_>>()?;
+    let mut refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = vec![&off, &sep];
+    for i in &items {
+        refs.push(i);
+    }
+    Submenu::with_items(app, title, true, &refs)
+}
 
 use crate::window::{self, PET_LABEL};
 
@@ -57,8 +103,29 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
     let peek = MenuItem::with_id(app, "peek", "Peek Mode (toggle)", true, None::<&str>)?;
     let pomodoro = MenuItem::with_id(app, "pomodoro", "Pomodoro (toggle)", true, None::<&str>)?;
     let focus = MenuItem::with_id(app, "focus", "Focus mode (toggle)", true, None::<&str>)?;
-    let take_break = MenuItem::with_id(app, "take_break", "Take a break", true, None::<&str>)?;
-    let water = MenuItem::with_id(app, "water", "Drink water", true, None::<&str>)?;
+    let take_break = MenuItem::with_id(app, "take_break", "Take a break now", true, None::<&str>)?;
+    let water = MenuItem::with_id(app, "water", "Drink water now", true, None::<&str>)?;
+    // Setting the schedule was a trip to Settings for a value most people want
+    // to change from where the nudge came from.
+    let break_every = interval_menu(app, "Break reminder", "brk")?;
+    let water_every = interval_menu(app, "Water reminder", "wtr")?;
+    let remind_in = {
+        let items: Vec<MenuItem<tauri::Wry>> = IN_MINUTES
+            .iter()
+            .map(|m| {
+                MenuItem::with_id(
+                    app,
+                    format!("rin_{m}"),
+                    format!("In {}", label_minutes(*m)),
+                    true,
+                    None::<&str>,
+                )
+            })
+            .collect::<tauri::Result<_>>()?;
+        let refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> =
+            items.iter().map(|i| i as &dyn tauri::menu::IsMenuItem<tauri::Wry>).collect();
+        Submenu::with_items(app, "Remind me…", true, &refs)?
+    };
     let sep_media = PredefinedMenuItem::separator(app)?;
     let media_prev = MenuItem::with_id(app, "media_prev", "⏮  Previous track", true, None::<&str>)?;
     let media_play = MenuItem::with_id(app, "media_play_pause", "⏯  Play / Pause", true, None::<&str>)?;
@@ -85,6 +152,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<Menu<tauri::Wry>> {
         app,
         &[
             &show, &hide, &pause, &resume, &recenter, &peek, &pomodoro, &focus, &take_break, &water,
+            &break_every, &water_every, &remind_in,
             &sep_media, &media_prev, &media_play, &media_next, &vol_down, &vol_up, &vol_mute, &sep,
             &chat, &games, &settings, &update, &sep2, &quit,
         ],
@@ -128,6 +196,18 @@ pub fn handle(app: &AppHandle, id: &str) {
         }
         "water" => {
             let _ = app.emit("tray:water", ());
+        }
+        // The value travels in the item id, so the menu stays declarative and
+        // there is no lookup table to keep in step with it.
+        id if id.starts_with("brk_") || id.starts_with("wtr_") || id.starts_with("rin_") => {
+            let (kind, value) = id.split_at(4);
+            let Ok(minutes) = value.parse::<u32>() else { return };
+            let event = match kind {
+                "brk_" => "tray:break-every",
+                "wtr_" => "tray:water-every",
+                _ => "tray:remind-in",
+            };
+            let _ = app.emit(event, minutes);
         }
         id if id.starts_with("media_") => {
             let action = id.trim_start_matches("media_");

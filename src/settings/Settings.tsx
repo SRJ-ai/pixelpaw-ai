@@ -17,7 +17,7 @@ import { PROVIDERS, providerInfo, setKey, hasKey, type ProviderId } from "@/ai/c
 import { PERSONALITIES, LANGUAGES, type LanguageId, type PersonalityId } from "@/ai/personality";
 import { loadMemories, deleteMemory, clearMemories, MEMORY_LABELS, type MemoryEntry } from "@/ai/memory";
 import { invoke } from "@tauri-apps/api/core";
-import { DEFAULT_APPEARANCE } from "@/types/pet";
+import { DEFAULT_APPEARANCE, SPECIES } from "@/types/pet";
 import { CHARACTERS, characterById } from "@/config/characters";
 import { setUiLang, t, UI_LANGUAGES, type StringKey, type UiLang } from "@/config/i18n";
 import { clearCrash, readCrash } from "@/ui/crashLog";
@@ -88,7 +88,8 @@ export default function Settings() {
           <PixelCat
             appearance={s.appearance}
             accessories={characterById(s.characterId).accessories}
-            species={characterById(s.characterId).species}
+            species={s.appearance.species ?? characterById(s.characterId).species}
+            shape={characterById(s.characterId).shape}
           />
         </div>
         <div>
@@ -145,7 +146,7 @@ export default function Settings() {
                 }
               >
                 <span className="set-char-preview">
-                  <PixelCat appearance={c.appearance} accessories={c.accessories} species={c.species} />
+                  <PixelCat appearance={c.appearance} accessories={c.accessories} species={c.species} shape={c.shape} />
                 </span>
                 <span className="set-char-name">{c.name}</span>
               </button>
@@ -179,6 +180,29 @@ export default function Settings() {
         </Section>
 
         <Section title={t("set.section.appearance")}>
+          {/* Decouples the body from the costume. Four bodies × any colours is
+              a far bigger roster than shipping more presets would be, and it
+              means a character you want exists whether or not it ships. */}
+          <Row label={t("set.species")}>
+            <select
+              className="set-input"
+              value={s.appearance.species ?? ""}
+              onChange={(e) =>
+                patch((d) => {
+                  const v = e.target.value;
+                  if (v) d.appearance.species = v as (typeof SPECIES)[number];
+                  else delete d.appearance.species;
+                })
+              }
+            >
+              <option value="">{t("set.speciesDefault")}</option>
+              {SPECIES.map((sp) => (
+                <option key={sp} value={sp}>
+                  {t(`set.species.${sp}` as never)}
+                </option>
+              ))}
+            </select>
+          </Row>
           <ColorRow label={t("set.body")} value={s.appearance.bodyColor} onChange={(v) => patch((d) => (d.appearance.bodyColor = v))} />
           <ColorRow label={t("set.belly")} value={s.appearance.bellyColor} onChange={(v) => patch((d) => (d.appearance.bellyColor = v))} />
           <ColorRow label={t("set.pattern")} value={s.appearance.patternColor} onChange={(v) => patch((d) => (d.appearance.patternColor = v))} />

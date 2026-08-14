@@ -166,7 +166,7 @@ export default function Chat() {
     <div className="chat-root">
       <header className="chat-header">
         <span className="chat-avatar">
-          <PixelCat appearance={settings.appearance} accessories={char.accessories} species={char.species} />
+          <PixelCat appearance={settings.appearance} accessories={char.accessories} species={settings.appearance.species ?? char.species} shape={char.shape} />
         </span>
         <span>
           <strong>{settings.petName}</strong>

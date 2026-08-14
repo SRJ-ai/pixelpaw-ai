@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import type { PetAppearance } from "@/types/pet";
-import type { Accessories, Species } from "@/config/characters";
+import type { Accessories, Shape, Species } from "@/config/characters";
 import { PART } from "./parts";
 
 /**
@@ -21,6 +21,8 @@ interface Props {
   accessories?: Accessories;
   /** Which animal to draw. Defaults to the cat the rig started as. */
   species?: Species;
+  /** Silhouette variation — the part that actually tells characters apart. */
+  shape?: Shape;
   /** Ambient cosmic decor (stars + a stylized black hole) behind the pet. */
   decor?: boolean;
 }
@@ -38,9 +40,60 @@ const originBase = { transformBox: "fill-box", transformOrigin: "0% 100%" } as c
 const isLatin = (s: string) => /^[\x20-\x7e]*$/.test(s);
 
 export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
-  { appearance: a, accessories: acc = {}, species = "cat", decor = false },
+  { appearance: a, accessories: acc = {}, species = "cat", shape = {}, decor = false },
   ref
 ) {
+  // Body proportions. Same anchor and centre so every part positioned off the
+  // torso still lands, but a stocky build is visibly a different animal from a
+  // slim one at a glance — which no amount of recolouring achieves.
+  const build = shape.build ?? "default";
+  const bodyW = build === "stocky" ? 60 : build === "slim" ? 44 : 52;
+  const bodyH = build === "stocky" ? 54 : build === "slim" ? 62 : 58;
+  const bodyX = 50 - bodyW / 2;
+  const bodyY = 88 - bodyH;
+  const bodyR = build === "stocky" ? 24 : 20;
+  const horns = shape.horns ?? "swept";
+  const wings = shape.wings ?? "bat";
+  const ears = shape.ears ?? "pointed";
+  const catTail = shape.tail ?? "curl";
+  /**
+   * Ear paths, written out per side rather than mirrored programmatically.
+   * Reflecting an SVG path string means telling x coordinates from y ones and
+   * from arc flags, which is a parser; four hand-written pairs are shorter than
+   * the parser and cannot get it subtly wrong.
+   */
+  const EARS: Record<string, { lOut: string; lIn: string; rOut: string; rIn: string }> = {
+    pointed: {
+      lOut: "M27 40 L45 37 L32 15 Z",
+      lIn: "M32 37 L41 35 L34 22 Z",
+      rOut: "M73 40 L55 37 L68 15 Z",
+      rIn: "M68 37 L59 35 L66 22 Z",
+    },
+    tall: {
+      lOut: "M28 40 L42 38 L30 6 Z",
+      lIn: "M32 37 L39 36 L32 15 Z",
+      rOut: "M72 40 L58 38 L70 6 Z",
+      rIn: "M68 37 L61 36 L68 15 Z",
+    },
+    round: {
+      lOut: "M26 40 A10 10 0 0 1 44 34 L43 41 Z",
+      lIn: "M31 38 A5.5 5.5 0 0 1 40 34 L39 39 Z",
+      rOut: "M74 40 A10 10 0 0 0 56 34 L57 41 Z",
+      rIn: "M69 38 A5.5 5.5 0 0 0 60 34 L61 39 Z",
+    },
+    tufted: {
+      lOut: "M27 40 L45 37 L32 15 Z M33 19 L27 7 L38 16 Z",
+      lIn: "M32 37 L41 35 L34 22 Z",
+      rOut: "M73 40 L55 37 L68 15 Z M67 19 L73 7 L62 16 Z",
+      rIn: "M68 37 L59 35 L66 22 Z",
+    },
+  };
+  const ear = EARS[ears];
+  const CAT_TAIL: Record<string, string> = {
+    curl: "M74 82 Q95 80 90 58 Q88 49 82 52 Q89 66 73 75 Z",
+    bushy: "M72 84 Q98 82 96 60 Q95 44 84 48 Q94 66 71 76 Z",
+    stub: "M73 82 Q84 82 84 72 Q84 66 78 68 Q80 74 72 76 Z",
+  };
   const badge = acc.headbandText ?? "OG";
   const teluguBadge = !isLatin(badge);
   const isCat = species === "cat";
@@ -156,7 +209,35 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         {/* Dragon wings, behind everything. Drawn with the tail so they sit
             under the torso and read as attached to the back rather than pasted
             over the belly. */}
-        {isDragon && (
+        {isDragon && wings === "finned" && (
+          // A low dorsal fin instead of wings: a different animal entirely at
+          // a glance, and it does not widen the silhouette.
+          <g>
+            {/* Separate spines rather than one arc. Drawn behind the head, an
+                arc showed only its top edge and read as a carry handle; each
+                spine still reads as a spine when its base is hidden. */}
+            <path
+              d="M38 36 L34 20 L45 33 Z M50 34 L50 15 L58 32 Z M62 36 L67 21 L68 34 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+              strokeLinejoin="round"
+            />
+            <path
+              d="M28 62 Q18 56 14 64 Q22 63 24 70 Q28 66 32 68 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+            <path
+              d="M72 62 Q82 56 86 64 Q78 63 76 70 Q72 66 68 68 Z"
+              fill={a.patternColor}
+              stroke={OUTLINE}
+              strokeWidth={1}
+            />
+          </g>
+        )}
+        {isDragon && wings === "bat" && (
           <g>
             <path
               d="M33 54 Q11 32 5 47 Q13 50 9 60 Q19 57 24 66 Q28 60 34 64 Z"
@@ -178,12 +259,7 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         {/* Tail. The cat sweeps, the dog cocks up short, the panda has a stub. */}
         <g id={PART.tail} style={originBase as React.CSSProperties}>
           {species === "cat" && (
-            <path
-              d="M74 82 Q95 80 90 58 Q88 49 82 52 Q89 66 73 75 Z"
-              fill={a.bodyColor}
-              stroke={OUTLINE}
-              strokeWidth={1}
-            />
+            <path d={CAT_TAIL[catTail]} fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
           )}
           {species === "dog" && (
             <path
@@ -225,8 +301,8 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         <g id={PART.earL} style={originFeet as React.CSSProperties}>
           {species === "cat" && (
             <>
-              <path d="M27 40 L45 37 L32 15 Z" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
-              <path d="M32 37 L41 35 L34 22 Z" fill={a.innerEarColor} />
+              <path d={ear.lOut} fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+              <path d={ear.lIn} fill={a.innerEarColor} />
             </>
           )}
           {species === "dog" && (
@@ -250,11 +326,16 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
             </>
           )}
           {isDragon && (
-            // Swept-back horn. Occupies the ear slot so the ear-flick animation
-            // gives it a little twitch, which turns out to read as charming
-            // rather than wrong.
+            // Occupies the ear slot so the ear-flick animation gives it a
+            // twitch, which reads as charming rather than wrong.
             <path
-              d="M34 36 Q27 22 20 14 Q30 18 37 34 Z"
+              d={
+                horns === "curled"
+                  ? "M35 35 Q23 30 22 19 Q28 13 35 20 Q30 27 38 33 Z"
+                  : horns === "spiked"
+                    ? "M33 36 L29 11 L34 18 L38 9 L39 34 Z"
+                    : "M34 36 Q27 22 20 14 Q30 18 37 34 Z"
+              }
               fill={a.patternColor}
               stroke={OUTLINE}
               strokeWidth={1}
@@ -265,8 +346,8 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         <g id={PART.earR} style={originFeet as React.CSSProperties}>
           {species === "cat" && (
             <>
-              <path d="M73 40 L55 37 L68 15 Z" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
-              <path d="M68 37 L59 35 L66 22 Z" fill={a.innerEarColor} />
+              <path d={ear.rOut} fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+              <path d={ear.rIn} fill={a.innerEarColor} />
             </>
           )}
           {species === "dog" && (
@@ -288,7 +369,13 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
           )}
           {isDragon && (
             <path
-              d="M66 36 Q73 22 80 14 Q70 18 63 34 Z"
+              d={
+                horns === "curled"
+                  ? "M65 35 Q77 30 78 19 Q72 13 65 20 Q70 27 62 33 Z"
+                  : horns === "spiked"
+                    ? "M67 36 L71 11 L66 18 L62 9 L61 34 Z"
+                    : "M66 36 Q73 22 80 14 Q70 18 63 34 Z"
+              }
               fill={a.patternColor}
               stroke={OUTLINE}
               strokeWidth={1}
@@ -321,7 +408,31 @@ export const PixelCat = forwardRef<SVGSVGElement, Props>(function PixelCat(
         )}
 
         {/* Torso / head blob */}
-        <rect x="24" y="30" width="52" height="58" rx="22" fill={a.bodyColor} stroke={OUTLINE} strokeWidth={1} />
+        {/* A neck frill, drawn under the head so it fans out behind it. Reads
+            from further away than horns do, so it carries the silhouette. */}
+        {shape.frill && (
+          // Has to reach well past the body's own edge. Sized to the torso it
+          // was drawn behind, so the torso painted over all of it and the frill
+          // was invisible — a silhouette feature that changes no silhouette.
+          <path
+            d="M50 30 L12 44 L19 53 L8 62 L23 69 L18 80 L50 73 L82 80 L77 69 L92 62 L81 53 L88 44 Z"
+            fill={a.patternColor}
+            stroke={OUTLINE}
+            strokeWidth={1}
+            strokeLinejoin="round"
+            opacity="0.95"
+          />
+        )}
+        <rect
+          x={bodyX}
+          y={bodyY}
+          width={bodyW}
+          height={bodyH}
+          rx={bodyR}
+          fill={a.bodyColor}
+          stroke={OUTLINE}
+          strokeWidth={1}
+        />
         <ellipse cx="50" cy="72" rx="15" ry="17" fill={a.bellyColor} />
         {/* Forehead tabby marks — a cat thing, and wrong on the other two. */}
         {isCat && (

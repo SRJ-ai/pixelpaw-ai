@@ -1,6 +1,6 @@
 [package]
 name = "pixelpaw-ai"
-version = "0.2.6"
+version = "0.2.7"
 description = "PixelPaw AI - an original intelligent desktop companion"
 license = "Apache-2.0"
 authors = ["PixelPaw"]

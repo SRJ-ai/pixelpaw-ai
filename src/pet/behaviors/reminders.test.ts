@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Reminder } from "@/config/settings";
-import { dateKey, isReminderDue, minutesOfDay, REMINDER_GRACE_MIN } from "./reminders";
+import { dateKey, inMinutes, isReminderDue, minutesOfDay, REMINDER_GRACE_MIN } from "./reminders";
 
 /** 2026-08-12 is a Wednesday; 2026-08-15 is a Saturday. */
 const WED = (h: number, m: number) => new Date(2026, 7, 12, h, m, 0);
@@ -75,5 +75,25 @@ describe("isReminderDue", () => {
   it("fires again the next day once lastFired is stale", () => {
     const r = reminder({ lastFired: "2026-08-11" });
     expect(isReminderDue(r, { now: WED(9, 30) })).toBe(true);
+  });
+});
+
+describe("inMinutes", () => {
+  const at = (h: number, m: number) => new Date(2026, 7, 13, h, m, 0);
+
+  it("adds the offset", () => {
+    expect(inMinutes(30, at(9, 0))).toBe("09:30");
+    expect(inMinutes(5, at(14, 58))).toBe("15:03");
+    expect(inMinutes(60, at(10, 15))).toBe("11:15");
+  });
+
+  it("wraps past midnight instead of producing an hour that never arrives", () => {
+    // 24:20 would simply never fire.
+    expect(inMinutes(30, at(23, 50))).toBe("00:20");
+    expect(inMinutes(60, at(23, 30))).toBe("00:30");
+  });
+
+  it("pads both halves", () => {
+    expect(inMinutes(5, at(0, 1))).toBe("00:06");
   });
 });
